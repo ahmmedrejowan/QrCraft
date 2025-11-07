@@ -16,9 +16,7 @@ import androidx.compose.material.icons.filled.FlashlightOn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,8 +29,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -43,7 +39,6 @@ import com.rejown.qrcraft.presentation.scanner.components.ScanOverlay
 import com.rejown.qrcraft.presentation.scanner.components.ScanResultBottomSheet
 import com.rejown.qrcraft.presentation.scanner.state.ScannerEvent
 import com.rejown.qrcraft.presentation.scanner.state.ScannerState
-import com.rejown.qrcraft.utils.AccessibilityUtils
 import com.rejown.qrcraft.utils.rememberHapticFeedback
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -88,38 +83,12 @@ fun ScannerScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Scan QR Code", Modifier.semantics { contentDescription = "Scanner screen" }) }
-            )
-        },
-        floatingActionButton = {
-            if (cameraPermissionState.status.isGranted) {
-                FloatingActionButton(
-                    onClick = {
-                        isFlashlightOn = !isFlashlightOn
-                        haptic.mediumClick()
-                    },
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Icon(
-                        imageVector = if (isFlashlightOn) {
-                            Icons.Default.FlashlightOn
-                        } else {
-                            Icons.Default.FlashlightOff
-                        },
-                        contentDescription = if (isFlashlightOn) "Turn off flashlight" else "Turn on flashlight"
-                    )
-                }
-            }
-        },
-        modifier = modifier
-    ) { paddingValues ->
+    Box(
+        modifier = modifier.fillMaxSize()
+    ) {
+        // Main content
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
+            modifier = Modifier.fillMaxSize()
         ) {
             when {
                 !cameraPermissionState.status.isGranted -> {
@@ -137,7 +106,8 @@ fun ScannerScreen(
                     CameraPreview(
                         onBarcodeDetected = { result ->
                             viewModel.onEvent(ScannerEvent.OnBarcodeDetected(result))
-                        }
+                        },
+                        isFlashlightOn = isFlashlightOn
                     )
                     ScanOverlay()
                 }
@@ -197,6 +167,28 @@ fun ScannerScreen(
                             viewModel.onEvent(ScannerEvent.OnResultDismissed)
                         }
                     }
+                )
+            }
+        }
+
+        // Flashlight FAB
+        if (cameraPermissionState.status.isGranted) {
+            FloatingActionButton(
+                onClick = {
+                    isFlashlightOn = !isFlashlightOn
+                    haptic.mediumClick()
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp)
+            ) {
+                Icon(
+                    imageVector = if (isFlashlightOn) {
+                        Icons.Default.FlashlightOn
+                    } else {
+                        Icons.Default.FlashlightOff
+                    },
+                    contentDescription = if (isFlashlightOn) "Turn off flashlight" else "Turn on flashlight"
                 )
             }
         }

@@ -11,21 +11,18 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun ScanOverlay(modifier: Modifier = Modifier) {
-    val configuration = LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp.dp.value
-    val screenHeight = configuration.screenHeightDp.dp.value
-
-    // Calculate scan area (square in the center)
-    val scanSize = (screenWidth * 0.7f).coerceAtMost(screenHeight * 0.5f)
-    val left = (screenWidth - scanSize) / 2
-    val top = (screenHeight - scanSize) / 2
-
     Canvas(modifier = modifier.fillMaxSize()) {
+        val canvasWidth = size.width
+        val canvasHeight = size.height
+
+        // Calculate scan area (square in the center) - doubled size (from 0.7 to 1.4, max 0.7 of height)
+        val scanSize = (canvasWidth * 0.75f).coerceAtMost(canvasHeight * 0.6f)
+        val left = (canvasWidth - scanSize) / 2
+        val top = (canvasHeight - scanSize) / 2
         // Draw darkened background
         drawRect(
             color = Color.Black.copy(alpha = 0.5f),

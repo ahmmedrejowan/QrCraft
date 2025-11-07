@@ -9,15 +9,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -34,7 +31,6 @@ import com.rejown.qrcraft.presentation.navigation.Screen
 import com.rejown.qrcraft.utils.rememberHapticFeedback
 import org.koin.androidx.compose.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(
     navController: NavController,
@@ -44,41 +40,11 @@ fun HistoryScreen(
     val state by viewModel.state.collectAsState()
     val haptic = rememberHapticFeedback()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = if (state.isSelectionMode) {
-                            "${state.selectedItems.size} selected"
-                        } else {
-                            "History"
-                        }
-                    )
-                }
-            )
-        },
-        floatingActionButton = {
-            if (state.isSelectionMode && state.selectedItems.isNotEmpty()) {
-                FloatingActionButton(
-                    onClick = {
-                        viewModel.onEvent(HistoryEvent.OnDeleteSelected)
-                        haptic.strongImpact()
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete selected"
-                    )
-                }
-            }
-        },
-        modifier = modifier
-    ) { paddingValues ->
+    Box(
+        modifier = modifier.fillMaxSize()
+    ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
+            modifier = Modifier.fillMaxSize()
         ) {
             // Tabs
             TabRow(
@@ -216,6 +182,24 @@ fun HistoryScreen(
                         }
                     }
                 }
+            }
+        }
+
+        // FAB for bulk delete
+        if (state.isSelectionMode && state.selectedItems.isNotEmpty()) {
+            FloatingActionButton(
+                onClick = {
+                    viewModel.onEvent(HistoryEvent.OnDeleteSelected)
+                    haptic.strongImpact()
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete selected"
+                )
             }
         }
     }

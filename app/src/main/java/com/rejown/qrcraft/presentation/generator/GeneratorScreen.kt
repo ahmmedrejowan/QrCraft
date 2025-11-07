@@ -19,13 +19,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -43,7 +40,6 @@ import org.koin.androidx.compose.koinViewModel
 import java.io.File
 import java.io.FileOutputStream
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GeneratorScreen(
     viewModel: GeneratorViewModel = koinViewModel(),
@@ -53,20 +49,11 @@ fun GeneratorScreen(
     val context = LocalContext.current
     val haptic = rememberHapticFeedback()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Generate QR Code") }
-            )
-        },
+    Column(
         modifier = modifier
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-        ) {
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
             // Content type selector
             ContentTypeSelector(
                 selectedType = state.selectedContentType,
@@ -176,7 +163,6 @@ fun GeneratorScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
             }
-        }
     }
 }
 

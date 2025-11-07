@@ -22,6 +22,7 @@ import java.util.concurrent.Executors
 @Composable
 fun CameraPreview(
     onBarcodeDetected: (ScanResult) -> Unit,
+    isFlashlightOn: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -38,16 +39,18 @@ fun CameraPreview(
 
     AndroidView(
         factory = { previewView },
-        modifier = modifier.fillMaxSize()
-    ) {
-        startCamera(
-            context = context,
-            previewView = previewView,
-            lifecycleOwner = lifecycleOwner,
-            cameraExecutor = cameraExecutor,
-            onBarcodeDetected = onBarcodeDetected
-        )
-    }
+        modifier = modifier.fillMaxSize(),
+        update = {
+            startCamera(
+                context = context,
+                previewView = previewView,
+                lifecycleOwner = lifecycleOwner,
+                cameraExecutor = cameraExecutor,
+                onBarcodeDetected = onBarcodeDetected,
+                isFlashlightOn = isFlashlightOn
+            )
+        }
+    )
 }
 
 private fun startCamera(
@@ -55,7 +58,8 @@ private fun startCamera(
     previewView: PreviewView,
     lifecycleOwner: androidx.lifecycle.LifecycleOwner,
     cameraExecutor: java.util.concurrent.ExecutorService,
-    onBarcodeDetected: (ScanResult) -> Unit
+    onBarcodeDetected: (ScanResult) -> Unit,
+    isFlashlightOn: Boolean = false
 ) {
     val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
 
@@ -85,14 +89,17 @@ private fun startCamera(
             cameraProvider.unbindAll()
 
             // Bind use cases to camera
-            cameraProvider.bindToLifecycle(
+            val camera = cameraProvider.bindToLifecycle(
                 lifecycleOwner,
                 cameraSelector,
                 preview,
                 imageAnalyzer
             )
 
-            Timber.d("Camera started successfully")
+            // Control flashlight
+            camera.cameraControl.enableTorch(isFlashlightOn)
+
+            Timber.d("Camera started successfully, flashlight: $isFlashlightOn")
         } catch (e: Exception) {
             Timber.e(e, "Failed to start camera")
         }
