@@ -6,16 +6,27 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.provider.Settings
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FlashlightOff
 import androidx.compose.material.icons.filled.FlashlightOn
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -33,8 +44,11 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
 import com.rejown.qrcraft.domain.models.ContentType
 import com.rejown.qrcraft.presentation.scanner.components.CameraPreview
+import com.rejown.qrcraft.presentation.scanner.components.PermissionDeniedContent
+import com.rejown.qrcraft.presentation.scanner.components.PermissionRationaleSheet
 import com.rejown.qrcraft.presentation.scanner.components.ScanOverlay
 import com.rejown.qrcraft.presentation.scanner.components.ScanResultBottomSheet
 import com.rejown.qrcraft.presentation.scanner.state.ScannerEvent
@@ -62,10 +76,51 @@ fun ScannerScreen(
     var showBottomSheet by remember { mutableStateOf(false) }
     var isFlashlightOn by remember { mutableStateOf(false) }
 
-    // Request camera permission on first launch
+    // Permission states
+    val permissionRationaleSheetState = rememberModalBottomSheetState()
+    var showPermissionRationale by remember { mutableStateOf(false) }
+    var hasCheckedPermission by remember { mutableStateOf(false) }
+
+    // Gallery picker
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        uri?.let {
+            scope.launch {
+                try {
+                    val inputImage = com.google.mlkit.vision.common.InputImage.fromFilePath(context, it)
+                    val result = com.rejown.qrcraft.utils.scanner.ImageDecoder.decodeWithMLKit(inputImage)
+                    if (result != null) {
+                        viewModel.onEvent(ScannerEvent.OnBarcodeDetected(result))
+                        haptic.success()
+                    } else {
+                        // Try ZXing fallback
+                        val bitmap = android.graphics.BitmapFactory.decodeStream(
+                            context.contentResolver.openInputStream(it)
+                        )
+                        val zxingResult = com.rejown.qrcraft.utils.scanner.ImageDecoder.decodeWithZXing(bitmap)
+                        if (zxingResult != null) {
+                            viewModel.onEvent(ScannerEvent.OnBarcodeDetected(zxingResult))
+                            haptic.success()
+                        } else {
+                            Toast.makeText(context, "No code found in image", Toast.LENGTH_SHORT).show()
+                            haptic.error()
+                        }
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(context, "Failed to scan image: ${e.message}", Toast.LENGTH_SHORT).show()
+                    haptic.error()
+                }
+            }
+        }
+    }
+
+    // Check and request camera permission with better UX
     LaunchedEffect(Unit) {
-        if (!cameraPermissionState.status.isGranted) {
-            cameraPermissionState.launchPermissionRequest()
+        if (!cameraPermissionState.status.isGranted && !hasCheckedPermission) {
+            hasCheckedPermission = true
+            // Show rationale first instead of directly requesting
+            showPermissionRationale = true
         }
     }
 
@@ -92,13 +147,26 @@ fun ScannerScreen(
         ) {
             when {
                 !cameraPermissionState.status.isGranted -> {
-                    // Permission denied
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Camera permission is required to scan QR codes")
-                    }
+                    // Check if permission is permanently denied
+                    val isPermanentlyDenied = !cameraPermissionState.status.shouldShowRationale && hasCheckedPermission
+
+                    // Permission denied - show helpful UI
+                    PermissionDeniedContent(
+                        isPermanentlyDenied = isPermanentlyDenied,
+                        onRequestPermission = {
+                            if (isPermanentlyDenied) {
+                                // User has permanently denied permission, open settings
+                                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                    data = Uri.fromParts("package", context.packageName, null)
+                                }
+                                context.startActivity(intent)
+                            } else {
+                                // Normal permission request
+                                cameraPermissionState.launchPermissionRequest()
+                            }
+                            haptic.lightClick()
+                        }
+                    )
                 }
 
                 state is ScannerState.Scanning -> {
@@ -171,16 +239,37 @@ fun ScannerScreen(
             }
         }
 
-        // Flashlight FAB
+        // Action buttons (Gallery + Flashlight)
         if (cameraPermissionState.status.isGranted) {
-            FloatingActionButton(
+            // Gallery button - Left bottom
+            androidx.compose.material3.IconButton(
+                onClick = {
+                    haptic.lightClick()
+                    galleryLauncher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    )
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(24.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PhotoLibrary,
+                    contentDescription = "Scan from gallery",
+                    modifier = Modifier.padding(8.dp),
+                    tint = androidx.compose.ui.graphics.Color.White
+                )
+            }
+
+            // Flashlight button - Right bottom
+            androidx.compose.material3.IconButton(
                 onClick = {
                     isFlashlightOn = !isFlashlightOn
                     haptic.mediumClick()
                 },
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(16.dp)
+                    .padding(24.dp)
             ) {
                 Icon(
                     imageVector = if (isFlashlightOn) {
@@ -188,9 +277,47 @@ fun ScannerScreen(
                     } else {
                         Icons.Default.FlashlightOff
                     },
-                    contentDescription = if (isFlashlightOn) "Turn off flashlight" else "Turn on flashlight"
+                    contentDescription = if (isFlashlightOn) "Turn off flashlight" else "Turn on flashlight",
+                    modifier = Modifier.padding(8.dp),
+                    tint = androidx.compose.ui.graphics.Color.White
                 )
             }
+        }
+
+        // Permission rationale bottom sheet
+        if (showPermissionRationale) {
+            // Check if permission is permanently denied
+            val isPermanentlyDeniedInSheet = !cameraPermissionState.status.shouldShowRationale && hasCheckedPermission
+
+            PermissionRationaleSheet(
+                sheetState = permissionRationaleSheetState,
+                isPermanentlyDenied = isPermanentlyDeniedInSheet,
+                onDismiss = {
+                    showPermissionRationale = false
+                    scope.launch {
+                        permissionRationaleSheetState.hide()
+                    }
+                },
+                onRequestPermission = {
+                    showPermissionRationale = false
+                    scope.launch {
+                        permissionRationaleSheetState.hide()
+                    }
+
+                    if (isPermanentlyDeniedInSheet) {
+                        // User has permanently denied permission, open settings
+                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.fromParts("package", context.packageName, null)
+                        }
+                        context.startActivity(intent)
+                    } else {
+                        // Mark that we've requested permission at least once
+                        hasCheckedPermission = true
+                        cameraPermissionState.launchPermissionRequest()
+                    }
+                    haptic.lightClick()
+                }
+            )
         }
     }
 }
