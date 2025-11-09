@@ -41,11 +41,23 @@ import androidx.core.graphics.set
 fun ScanDetailScreen(
     scanResult: ScanResult,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    autoSave: Boolean = true, // Auto-save for fresh scans, false for history items
+    scannerViewModel: com.rejown.qrcraft.presentation.scanner.ScannerViewModel = org.koin.androidx.compose.koinViewModel()
 ) {
-    timber.log.Timber.tag("QRCraft ScanDetailScree").e("composable - Composing with result: ${scanResult.displayValue}, type: ${scanResult.contentType}")
+    timber.log.Timber.tag("QRCraft ScanDetailScree").e("composable - Composing with result: ${scanResult.displayValue}, type: ${scanResult.contentType}, autoSave: $autoSave")
 
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    // Auto-save to database in the background for fresh scans (not for history items)
+    if (autoSave) {
+        LaunchedEffect(scanResult) {
+            timber.log.Timber.tag("QRCraft ScanDetailScree").e("LaunchedEffect - Auto-saving scan to database")
+            val savedId = scannerViewModel.saveToHistory(scanResult)
+            timber.log.Timber.tag("QRCraft ScanDetailScree").e("LaunchedEffect - Scan saved with ID: $savedId")
+        }
+    }
 
     // Handle device back button/gesture
     BackHandler {
@@ -119,36 +131,6 @@ fun ScanDetailScreen(
                             modifier = Modifier.fillMaxSize()
                         )
                     }
-                }
-            }
-
-            // Saved to history message
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Saved to history",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
                 }
             }
 

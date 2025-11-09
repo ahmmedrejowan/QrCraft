@@ -1,9 +1,13 @@
 package com.rejown.qrcraft.presentation.navigation
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -11,17 +15,9 @@ import androidx.navigation.toRoute
 import com.rejown.qrcraft.presentation.detail.DetailScreen
 import com.rejown.qrcraft.presentation.generator.creation.CreationScreen
 import com.rejown.qrcraft.presentation.generator.details.CodeDetailScreen
-import com.rejown.qrcraft.presentation.scanner.ScannerViewModel
 import com.rejown.qrcraft.presentation.scanner.details.ScanDetailScreen
 import com.rejown.qrcraft.presentation.scanner.details.ScanHistoryDetailViewModel
-import com.rejown.qrcraft.presentation.scanner.state.ScannerEvent
-import com.rejown.qrcraft.presentation.scanner.state.ScannerState
 import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.koinInject
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.ui.Alignment
 
 /**
  * Parent navigation host for the QRCraft app
@@ -89,40 +85,26 @@ fun QRCraftNavHost(
             )
         }
 
-        composable<Screen.ScanDetail> {
-            timber.log.Timber.tag("QRCraft QRCraftNavHost").e("composable - Composing ScanDetail screen")
+        composable<Screen.ScanDetail> { backStackEntry ->
+            val scanDetail = backStackEntry.toRoute<Screen.ScanDetail>()
+            timber.log.Timber.tag("QRCraft QRCraftNavHost").e("composable - ScanDetail with data: ${scanDetail.displayValue}")
 
-            // Get the SAME ScannerViewModel instance (singleton)
-            val scannerViewModel: ScannerViewModel = koinInject()
-            val state by scannerViewModel.state.collectAsState()
+            // Reconstruct ScanResult from navigation arguments
+            val scanResult = com.rejown.qrcraft.domain.models.ScanResult(
+                rawValue = scanDetail.rawValue,
+                displayValue = scanDetail.displayValue,
+                format = com.rejown.qrcraft.domain.models.BarcodeFormat.valueOf(scanDetail.format),
+                contentType = com.rejown.qrcraft.domain.models.ContentType.valueOf(scanDetail.contentType),
+                timestamp = scanDetail.timestamp
+            )
 
-            timber.log.Timber.tag("QRCraft QRCraftNavHost").e("composable - ScanDetail current state: ${state::class.simpleName}")
-
-            when (state) {
-                is ScannerState.Success -> {
-                    val scanResult = (state as ScannerState.Success).result
-                    timber.log.Timber.tag("QRCraft QRCraftNavHost").e("composable - Showing detail for: ${scanResult.displayValue}")
-                    ScanDetailScreen(
-                        scanResult = scanResult,
-                        onBack = {
-                            timber.log.Timber.tag("QRCraft QRCraftNavHost").e("onBack - Back pressed from ScanDetail")
-                            // Reset scanner state before navigating back
-                            scannerViewModel.onEvent(ScannerEvent.StartScanning)
-                            // Simply pop back - no need to recreate the whole stack
-                            navController.popBackStack()
-                            timber.log.Timber.tag("QRCraft QRCraftNavHost").e("onBack - Popped back stack")
-                        }
-                    )
+            ScanDetailScreen(
+                scanResult = scanResult,
+                onBack = {
+                    timber.log.Timber.tag("QRCraft QRCraftNavHost").e("onBack - Back pressed from ScanDetail")
+                    navController.popBackStack()
                 }
-                else -> {
-                    timber.log.Timber.tag("QRCraft QRCraftNavHost").e("composable - State is not Success (${state::class.simpleName}), navigating back")
-                    // If state is not Success (shouldn't happen), just pop back
-                    LaunchedEffect(Unit) {
-                        timber.log.Timber.tag("QRCraft QRCraftNavHost").e("LaunchedEffect - Popping back stack")
-                        navController.popBackStack()
-                    }
-                }
-            }
+            )
         }
 
         composable<Screen.ScanHistoryDetail> { backStackEntry ->
@@ -154,7 +136,8 @@ fun QRCraftNavHost(
                         scanResult = state.scanResult!!,
                         onBack = {
                             navController.popBackStack()
-                        }
+                        },
+                        autoSave = false // Don't auto-save - already in database
                     )
                 }
             }

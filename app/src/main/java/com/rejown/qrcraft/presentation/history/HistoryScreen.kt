@@ -110,7 +110,7 @@ fun HistoryScreen(
                         ) {
                             items(
                                 items = state.combinedHistory,
-                                key = { it.id }
+                                key = { "${it.type.name}_${it.id}" }
                             ) { item ->
                                 when (item) {
                                     is HistoryItemData.Scanned -> {

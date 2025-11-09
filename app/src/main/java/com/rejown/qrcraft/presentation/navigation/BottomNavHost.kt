@@ -35,11 +35,34 @@ fun BottomNavHost(
         // ============ SCANNER SCREEN ============
         composable<Screen.Scanner> {
             Timber.tag("QRCraft BottomNavHost").e("composable - Composing Scanner screen")
+
+            // Get the scanner ViewModel to access scan result
+            val scannerViewModel: ScannerViewModel = koinInject()
+
             ScannerScreen(
+                viewModel = scannerViewModel,
                 onNavigateToDetail = {
-                    Timber.tag("QRCraft BottomNavHost").e("onNavigateToDetail - Callback triggered, navigating to ScanDetail")
-                    parentNavController.navigate(Screen.ScanDetail)
-                    Timber.tag("QRCraft BottomNavHost").e("onNavigateToDetail - Navigation to ScanDetail executed")
+                    Timber.tag("QRCraft BottomNavHost").e("onNavigateToDetail - Callback triggered")
+
+                    // Get the scan result from the ViewModel state
+                    val currentState = scannerViewModel.state.value
+                    if (currentState is com.rejown.qrcraft.presentation.scanner.state.ScannerState.Success) {
+                        val result = currentState.result
+                        Timber.tag("QRCraft BottomNavHost").e("onNavigateToDetail - Navigating with data: ${result.displayValue}")
+
+                        parentNavController.navigate(
+                            Screen.ScanDetail(
+                                rawValue = result.rawValue,
+                                displayValue = result.displayValue,
+                                format = result.format.name,
+                                contentType = result.contentType.name,
+                                timestamp = result.timestamp
+                            )
+                        )
+                        Timber.tag("QRCraft BottomNavHost").e("onNavigateToDetail - Navigation executed")
+                    } else {
+                        Timber.tag("QRCraft BottomNavHost").e("onNavigateToDetail - ERROR: State is not Success!")
+                    }
                 }
             )
         }

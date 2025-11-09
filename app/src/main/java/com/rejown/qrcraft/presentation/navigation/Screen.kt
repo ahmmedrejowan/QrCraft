@@ -42,7 +42,13 @@ sealed class Screen {
     ) : Screen()
 
     @Serializable
-    data object ScanDetail : Screen()
+    data class ScanDetail(
+        val rawValue: String,
+        val displayValue: String,
+        val format: String, // BarcodeFormat name
+        val contentType: String, // ContentType name
+        val timestamp: Long
+    ) : Screen()
 
     @Serializable
     data class ScanHistoryDetail(
