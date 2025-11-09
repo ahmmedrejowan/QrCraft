@@ -1,5 +1,6 @@
 package com.rejown.qrcraft.presentation.navigation
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -37,8 +38,8 @@ fun BottomNavHost(
         composable<Screen.Generator> {
             TemplateSelectionScreen(
                 onTemplateSelected = { templateId ->
-                    // TODO: Navigate to creation screen when implemented
-                    // parentNavController.navigate(Screen.Creation(templateId = templateId))
+                    Log.d("TemplateSelection", "Selected template: $templateId")
+                    parentNavController.navigate(Screen.Creation(templateId = templateId))
                 }
             )
         }

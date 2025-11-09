@@ -3,7 +3,10 @@
     <cache-path
         name="shared_images"
         path="images/" />
+    <cache-path
+        name="shared"
+        path="shared/" />
     <files-path
         name="generated_codes"
-        path="generated/" />
+        path="." />
 </paths>

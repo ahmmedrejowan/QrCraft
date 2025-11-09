@@ -22,6 +22,25 @@ enum class BarcodeFormat(
     CODABAR("Codabar", BarcodeType.ONE_D),
     UNKNOWN("Unknown", BarcodeType.TWO_D);
 
+    fun toZXingFormat(): com.google.zxing.BarcodeFormat {
+        return when (this) {
+            QR_CODE -> com.google.zxing.BarcodeFormat.QR_CODE
+            AZTEC -> com.google.zxing.BarcodeFormat.AZTEC
+            DATA_MATRIX -> com.google.zxing.BarcodeFormat.DATA_MATRIX
+            PDF417 -> com.google.zxing.BarcodeFormat.PDF_417
+            EAN_8 -> com.google.zxing.BarcodeFormat.EAN_8
+            EAN_13 -> com.google.zxing.BarcodeFormat.EAN_13
+            UPC_A -> com.google.zxing.BarcodeFormat.UPC_A
+            UPC_E -> com.google.zxing.BarcodeFormat.UPC_E
+            CODE_39 -> com.google.zxing.BarcodeFormat.CODE_39
+            CODE_93 -> com.google.zxing.BarcodeFormat.CODE_93
+            CODE_128 -> com.google.zxing.BarcodeFormat.CODE_128
+            ITF -> com.google.zxing.BarcodeFormat.ITF
+            CODABAR -> com.google.zxing.BarcodeFormat.CODABAR
+            UNKNOWN -> com.google.zxing.BarcodeFormat.QR_CODE // Default to QR
+        }
+    }
+
     companion object {
         fun fromMLKitFormat(mlkitFormat: Int): BarcodeFormat {
             return when (mlkitFormat) {

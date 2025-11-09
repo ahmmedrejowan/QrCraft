@@ -12,17 +12,20 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface GeneratedCodeDao {
 
-    @Query("SELECT * FROM generated_codes ORDER BY timestamp DESC")
+    @Query("SELECT * FROM generated_codes ORDER BY created_at DESC")
     fun getAllGenerated(): Flow<List<GeneratedCodeEntity>>
 
-    @Query("SELECT * FROM generated_codes WHERE is_favorite = 1 ORDER BY timestamp DESC")
+    @Query("SELECT * FROM generated_codes WHERE is_favorite = 1 ORDER BY created_at DESC")
     fun getFavorites(): Flow<List<GeneratedCodeEntity>>
 
-    @Query("SELECT * FROM generated_codes WHERE content LIKE '%' || :query || '%' OR title LIKE '%' || :query || '%'")
+    @Query("SELECT * FROM generated_codes WHERE formatted_content LIKE '%' || :query || '%' OR title LIKE '%' || :query || '%' ORDER BY created_at DESC")
     fun searchGenerated(query: String): Flow<List<GeneratedCodeEntity>>
 
-    @Query("SELECT * FROM generated_codes WHERE content_type = :type ORDER BY timestamp DESC")
+    @Query("SELECT * FROM generated_codes WHERE barcode_type = :type ORDER BY created_at DESC")
     fun getGeneratedByType(type: String): Flow<List<GeneratedCodeEntity>>
+
+    @Query("SELECT * FROM generated_codes WHERE template_id = :templateId ORDER BY created_at DESC")
+    fun getGeneratedByTemplate(templateId: String): Flow<List<GeneratedCodeEntity>>
 
     @Query("SELECT * FROM generated_codes WHERE id = :id")
     suspend fun getGeneratedById(id: Long): GeneratedCodeEntity?

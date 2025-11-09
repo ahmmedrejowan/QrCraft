@@ -2,6 +2,7 @@ package com.rejown.qrcraft.presentation.generator
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -186,6 +187,7 @@ private fun ViewModeToggle(
                 .fillMaxHeight()
                 .width(36.dp)
                 .clip(RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp))
+                .clickable { onViewModeChanged(ViewMode.GRID) }
                 .background(
                     if (viewMode == ViewMode.GRID) {
                         MaterialTheme.colorScheme.primaryContainer
@@ -196,17 +198,12 @@ private fun ViewModeToggle(
                 .padding(8.dp),
             contentAlignment = Alignment.Center
         ) {
-            IconButton(
-                onClick = { onViewModeChanged(ViewMode.GRID) },
-                modifier = Modifier.size(20.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.GridView,
-                    contentDescription = "Grid view",
-                    modifier = Modifier.size(16.dp),
-                    tint = Color.White
-                )
-            }
+            Icon(
+                imageVector = Icons.Default.GridView,
+                contentDescription = "Grid view",
+                modifier = Modifier.size(16.dp),
+                tint = Color.White
+            )
         }
 
         // Divider
@@ -223,6 +220,7 @@ private fun ViewModeToggle(
                 .fillMaxHeight()
                 .width(36.dp)
                 .clip(RoundedCornerShape(topEnd = 8.dp, bottomEnd = 8.dp))
+                .clickable { onViewModeChanged(ViewMode.LIST) }
                 .background(
                     if (viewMode == ViewMode.LIST) {
                         MaterialTheme.colorScheme.primaryContainer
@@ -233,17 +231,12 @@ private fun ViewModeToggle(
                 .padding(8.dp),
             contentAlignment = Alignment.Center
         ) {
-            IconButton(
-                onClick = { onViewModeChanged(ViewMode.LIST) },
-                modifier = Modifier.size(20.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ViewList,
-                    contentDescription = "List view",
-                    modifier = Modifier.size(16.dp),
-                    tint = Color.White
-                )
-            }
+            Icon(
+                imageVector = Icons.Default.ViewList,
+                contentDescription = "List view",
+                modifier = Modifier.size(16.dp),
+                tint = Color.White
+            )
         }
     }
 }

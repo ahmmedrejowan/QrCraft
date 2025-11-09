@@ -191,42 +191,9 @@ class GeneratorViewModel(
     }
 
     private fun saveGeneratedCode() {
-        val generatedCode = _state.value.generatedCode ?: return
-
-        viewModelScope.launch {
-            try {
-                // Save bitmap to file
-                val imagePath = saveBitmapToFile(generatedCode.bitmap)
-
-                if (imagePath != null) {
-                    val customizationJson = Json.encodeToString(
-                        mapOf(
-                            "size" to generatedCode.customization.size,
-                            "foregroundColor" to generatedCode.customization.foregroundColor,
-                            "backgroundColor" to generatedCode.customization.backgroundColor,
-                            "errorCorrectionLevel" to generatedCode.customization.errorCorrectionLevel.name,
-                            "margin" to generatedCode.customization.margin
-                        )
-                    )
-
-                    val entity = GeneratedCodeEntity(
-                        content = generatedCode.content,
-                        format = generatedCode.format.name,
-                        contentType = generatedCode.contentType.name,
-                        timestamp = generatedCode.timestamp,
-                        isFavorite = false,
-                        imagePath = imagePath,
-                        customization = customizationJson,
-                        title = null
-                    )
-
-                    generatorRepository.insertGenerated(entity)
-                    Timber.d("Generated code saved successfully")
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to save generated code")
-            }
-        }
+        // TODO: Update to use new template-based system
+        // This old generator is being replaced by the template-based creation flow
+        Timber.w("Old generator save functionality disabled - use template-based creation")
     }
 
     private suspend fun saveBitmapToFile(bitmap: Bitmap?): String? {

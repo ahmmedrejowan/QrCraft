@@ -148,10 +148,10 @@ fun HistoryScreen(
                                 key = { it.id }
                             ) { item ->
                                 HistoryItem(
-                                    content = item.content,
-                                    contentType = item.contentType,
-                                    format = item.format,
-                                    timestamp = item.timestamp,
+                                    content = item.formattedContent,
+                                    contentType = item.barcodeType,
+                                    format = item.barcodeFormat,
+                                    timestamp = item.createdAt,
                                     isFavorite = item.isFavorite,
                                     isSelected = state.selectedItems.contains(item.id),
                                     onClicked = {

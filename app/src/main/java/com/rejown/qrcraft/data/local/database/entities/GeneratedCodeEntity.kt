@@ -8,37 +8,78 @@ import androidx.room.PrimaryKey
 @Entity(
     tableName = "generated_codes",
     indices = [
-        Index(value = ["timestamp"], name = "idx_generated_codes_timestamp"),
-        Index(value = ["content_type"], name = "idx_generated_codes_content_type"),
-        Index(value = ["is_favorite"], name = "idx_generated_codes_is_favorite"),
-        Index(value = ["content"], name = "idx_generated_codes_content")
+        Index(value = ["created_at"], name = "idx_generated_codes_created_at"),
+        Index(value = ["template_id"], name = "idx_generated_codes_template_id"),
+        Index(value = ["is_favorite"], name = "idx_generated_codes_is_favorite")
     ]
 )
 data class GeneratedCodeEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
 
-    @ColumnInfo(name = "content")
-    val content: String,
+    // Template & Format
+    @ColumnInfo(name = "template_id")
+    val templateId: String,
 
-    @ColumnInfo(name = "format")
-    val format: String,
+    @ColumnInfo(name = "template_name")
+    val templateName: String,
 
-    @ColumnInfo(name = "content_type")
-    val contentType: String,
+    @ColumnInfo(name = "barcode_format")
+    val barcodeFormat: String,
 
-    @ColumnInfo(name = "timestamp")
-    val timestamp: Long,
+    @ColumnInfo(name = "barcode_type")
+    val barcodeType: String,
 
+    // User Content
+    @ColumnInfo(name = "title")
+    val title: String? = null,
+
+    @ColumnInfo(name = "note")
+    val note: String? = null,
+
+    @ColumnInfo(name = "content_fields")
+    val contentFields: String, // JSON
+
+    @ColumnInfo(name = "formatted_content")
+    val formattedContent: String,
+
+    // Customization
+    @ColumnInfo(name = "foreground_color")
+    val foregroundColor: Int,
+
+    @ColumnInfo(name = "background_color")
+    val backgroundColor: Int,
+
+    @ColumnInfo(name = "size")
+    val size: Int,
+
+    @ColumnInfo(name = "error_correction")
+    val errorCorrection: String? = null,
+
+    @ColumnInfo(name = "margin")
+    val margin: Int,
+
+    // Generated Image
+    @ColumnInfo(name = "image_path")
+    val imagePath: String,
+
+    @ColumnInfo(name = "image_width")
+    val imageWidth: Int,
+
+    @ColumnInfo(name = "image_height")
+    val imageHeight: Int,
+
+    // Timestamps
+    @ColumnInfo(name = "created_at")
+    val createdAt: Long,
+
+    @ColumnInfo(name = "updated_at")
+    val updatedAt: Long,
+
+    // Metadata
     @ColumnInfo(name = "is_favorite")
     val isFavorite: Boolean = false,
 
-    @ColumnInfo(name = "image_path")
-    val imagePath: String, // Path to generated image
-
-    @ColumnInfo(name = "customization")
-    val customization: String? = null, // JSON: colors, size, logo, etc.
-
-    @ColumnInfo(name = "title")
-    val title: String? = null // Optional user-defined title
+    @ColumnInfo(name = "scan_count")
+    val scanCount: Int = 0
 )
