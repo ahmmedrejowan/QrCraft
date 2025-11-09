@@ -4,6 +4,7 @@ import com.rejown.qrcraft.data.local.database.dao.ScanHistoryDao
 import com.rejown.qrcraft.data.local.database.entities.ScanHistoryEntity
 import com.rejown.qrcraft.domain.repository.ScanRepository
 import kotlinx.coroutines.flow.Flow
+import timber.log.Timber
 
 class ScanRepositoryImpl(
     private val scanHistoryDao: ScanHistoryDao
@@ -30,7 +31,15 @@ class ScanRepositoryImpl(
     }
 
     override suspend fun insertScan(history: ScanHistoryEntity): Long {
-        return scanHistoryDao.insert(history)
+        Timber.tag("QRCraft ScanRepositoryImpl").e("insertScan - Called with content: ${history.content}")
+        return try {
+            val id = scanHistoryDao.insert(history)
+            Timber.tag("QRCraft ScanRepositoryImpl").e("insertScan - Insert successful, ID: $id")
+            id
+        } catch (e: Exception) {
+            Timber.tag("QRCraft ScanRepositoryImpl").e(e, "insertScan - Insert failed")
+            throw e
+        }
     }
 
     override suspend fun updateScan(history: ScanHistoryEntity) {

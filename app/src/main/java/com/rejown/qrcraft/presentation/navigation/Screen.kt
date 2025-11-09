@@ -40,4 +40,12 @@ sealed class Screen {
     data class CodeDetails(
         val codeId: Long
     ) : Screen()
+
+    @Serializable
+    data object ScanDetail : Screen()
+
+    @Serializable
+    data class ScanHistoryDetail(
+        val scanId: Long
+    ) : Screen()
 }

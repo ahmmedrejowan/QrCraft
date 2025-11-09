@@ -26,6 +26,7 @@ import com.rejown.qrcraft.presentation.history.components.FilterChips
 import com.rejown.qrcraft.presentation.history.components.HistoryItem
 import com.rejown.qrcraft.presentation.history.components.SearchBar
 import com.rejown.qrcraft.presentation.history.state.HistoryEvent
+import com.rejown.qrcraft.presentation.history.state.HistoryItemData
 import com.rejown.qrcraft.presentation.history.state.HistoryTab
 import com.rejown.qrcraft.presentation.navigation.Screen
 import com.rejown.qrcraft.utils.rememberHapticFeedback
@@ -48,8 +49,20 @@ fun HistoryScreen(
         ) {
             // Tabs
             TabRow(
-                selectedTabIndex = if (state.selectedTab == HistoryTab.SCANNED) 0 else 1
+                selectedTabIndex = when (state.selectedTab) {
+                    HistoryTab.ALL -> 0
+                    HistoryTab.SCANNED -> 1
+                    HistoryTab.GENERATED -> 2
+                }
             ) {
+                Tab(
+                    selected = state.selectedTab == HistoryTab.ALL,
+                    onClick = {
+                        viewModel.onEvent(HistoryEvent.OnTabSelected(HistoryTab.ALL))
+                        haptic.lightClick()
+                    },
+                    text = { Text("All") }
+                )
                 Tab(
                     selected = state.selectedTab == HistoryTab.SCANNED,
                     onClick = {
@@ -87,6 +100,93 @@ fun HistoryScreen(
 
             // History list
             when (state.selectedTab) {
+                HistoryTab.ALL -> {
+                    if (state.combinedHistory.isEmpty()) {
+                        EmptyState("No history yet")
+                    } else {
+                        LazyColumn(
+                            contentPadding = PaddingValues(16.dp),
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            items(
+                                items = state.combinedHistory,
+                                key = { it.id }
+                            ) { item ->
+                                when (item) {
+                                    is HistoryItemData.Scanned -> {
+                                        HistoryItem(
+                                            content = item.entity.content,
+                                            contentType = item.entity.contentType,
+                                            format = item.entity.format,
+                                            timestamp = item.entity.timestamp,
+                                            isFavorite = item.entity.isFavorite,
+                                            isSelected = state.selectedItems.contains(item.id),
+                                            tag = "Scanned",
+                                            onClicked = {
+                                                if (state.isSelectionMode) {
+                                                    viewModel.onEvent(HistoryEvent.OnItemLongPressed(item.id))
+                                                } else {
+                                                    navController.navigate(
+                                                        Screen.ScanHistoryDetail(scanId = item.id)
+                                                    )
+                                                }
+                                            },
+                                            onLongPress = {
+                                                viewModel.onEvent(HistoryEvent.OnItemLongPressed(item.id))
+                                                haptic.strongImpact()
+                                            },
+                                            onToggleFavorite = {
+                                                viewModel.onEvent(
+                                                    HistoryEvent.OnToggleFavorite(
+                                                        item.id,
+                                                        !item.entity.isFavorite
+                                                    )
+                                                )
+                                                haptic.mediumClick()
+                                            },
+                                            modifier = Modifier.padding(bottom = 8.dp)
+                                        )
+                                    }
+                                    is HistoryItemData.Generated -> {
+                                        HistoryItem(
+                                            content = item.entity.formattedContent,
+                                            contentType = item.entity.barcodeType,
+                                            format = item.entity.barcodeFormat,
+                                            timestamp = item.entity.createdAt,
+                                            isFavorite = item.entity.isFavorite,
+                                            isSelected = state.selectedItems.contains(item.id),
+                                            tag = "Generated",
+                                            onClicked = {
+                                                if (state.isSelectionMode) {
+                                                    viewModel.onEvent(HistoryEvent.OnItemLongPressed(item.id))
+                                                } else {
+                                                    navController.navigate(
+                                                        Screen.Detail(id = item.id, type = "generated")
+                                                    )
+                                                }
+                                            },
+                                            onLongPress = {
+                                                viewModel.onEvent(HistoryEvent.OnItemLongPressed(item.id))
+                                                haptic.strongImpact()
+                                            },
+                                            onToggleFavorite = {
+                                                viewModel.onEvent(
+                                                    HistoryEvent.OnToggleFavorite(
+                                                        item.id,
+                                                        !item.entity.isFavorite
+                                                    )
+                                                )
+                                                haptic.mediumClick()
+                                            },
+                                            modifier = Modifier.padding(bottom = 8.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 HistoryTab.SCANNED -> {
                     if (state.scannedHistory.isEmpty()) {
                         EmptyState("No scanned codes yet")
@@ -111,7 +211,7 @@ fun HistoryScreen(
                                             viewModel.onEvent(HistoryEvent.OnItemLongPressed(item.id))
                                         } else {
                                             navController.navigate(
-                                                Screen.Detail(id = item.id, type = "scan")
+                                                Screen.ScanHistoryDetail(scanId = item.id)
                                             )
                                         }
                                     },

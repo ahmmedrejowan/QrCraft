@@ -10,6 +10,9 @@ import com.rejown.qrcraft.presentation.generator.TemplateSelectionScreen
 import com.rejown.qrcraft.presentation.history.HistoryScreen
 import com.rejown.qrcraft.presentation.scanner.ScannerScreen
 import com.rejown.qrcraft.presentation.settings.SettingsScreen
+import timber.log.Timber
+import org.koin.compose.koinInject
+import com.rejown.qrcraft.presentation.scanner.ScannerViewModel
 
 /**
  * Bottom navigation graph - Nested NavHost for Scanner/Generator/History/Settings
@@ -31,14 +34,21 @@ fun BottomNavHost(
     ) {
         // ============ SCANNER SCREEN ============
         composable<Screen.Scanner> {
-            ScannerScreen()
+            Timber.tag("QRCraft BottomNavHost").e("composable - Composing Scanner screen")
+            ScannerScreen(
+                onNavigateToDetail = {
+                    Timber.tag("QRCraft BottomNavHost").e("onNavigateToDetail - Callback triggered, navigating to ScanDetail")
+                    parentNavController.navigate(Screen.ScanDetail)
+                    Timber.tag("QRCraft BottomNavHost").e("onNavigateToDetail - Navigation to ScanDetail executed")
+                }
+            )
         }
 
         // ============ GENERATOR SCREEN ============
         composable<Screen.Generator> {
             TemplateSelectionScreen(
                 onTemplateSelected = { templateId ->
-                    Log.d("TemplateSelection", "Selected template: $templateId")
+                    Timber.tag("TemplateSelection").d("Selected template: $templateId")
                     parentNavController.navigate(Screen.Creation(templateId = templateId))
                 }
             )

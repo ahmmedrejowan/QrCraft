@@ -4,9 +4,10 @@ import com.rejown.qrcraft.data.local.database.entities.GeneratedCodeEntity
 import com.rejown.qrcraft.data.local.database.entities.ScanHistoryEntity
 
 data class HistoryState(
-    val selectedTab: HistoryTab = HistoryTab.SCANNED,
+    val selectedTab: HistoryTab = HistoryTab.ALL,
     val scannedHistory: List<ScanHistoryEntity> = emptyList(),
     val generatedHistory: List<GeneratedCodeEntity> = emptyList(),
+    val combinedHistory: List<HistoryItemData> = emptyList(),
     val searchQuery: String = "",
     val selectedFilter: String? = null,
     val isLoading: Boolean = false,
@@ -16,8 +17,32 @@ data class HistoryState(
 )
 
 enum class HistoryTab {
+    ALL,
     SCANNED,
     GENERATED
+}
+
+enum class HistoryItemType {
+    SCANNED,
+    GENERATED
+}
+
+sealed class HistoryItemData(
+    open val id: Long,
+    open val timestamp: Long,
+    open val type: HistoryItemType
+) {
+    data class Scanned(
+        override val id: Long,
+        override val timestamp: Long,
+        val entity: ScanHistoryEntity
+    ) : HistoryItemData(id, timestamp, HistoryItemType.SCANNED)
+
+    data class Generated(
+        override val id: Long,
+        override val timestamp: Long,
+        val entity: GeneratedCodeEntity
+    ) : HistoryItemData(id, timestamp, HistoryItemType.GENERATED)
 }
 
 sealed interface HistoryEvent {

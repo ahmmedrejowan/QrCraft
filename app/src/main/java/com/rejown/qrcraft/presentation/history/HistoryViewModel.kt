@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.rejown.qrcraft.domain.repository.GeneratorRepository
 import com.rejown.qrcraft.domain.repository.ScanRepository
 import com.rejown.qrcraft.presentation.history.state.HistoryEvent
+import com.rejown.qrcraft.presentation.history.state.HistoryItemData
 import com.rejown.qrcraft.presentation.history.state.HistoryState
 import com.rejown.qrcraft.presentation.history.state.HistoryTab
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -98,30 +99,45 @@ class HistoryViewModel(
             _state.update { it.copy(isLoading = true) }
 
             try {
-                // Load scanned history
-                scanRepository.getAllHistory()
+                // Combine both flows to update state when either changes
+                combine(
+                    scanRepository.getAllHistory(),
+                    generatorRepository.getAllGenerated()
+                ) { scannedList, generatedList ->
+                    Pair(scannedList, generatedList)
+                }
                     .catch { e ->
-                        Timber.e(e, "Error loading scan history")
-                        _state.update { it.copy(error = "Failed to load scan history") }
+                        Timber.e(e, "Error loading history")
+                        _state.update { it.copy(error = "Failed to load history", isLoading = false) }
                     }
-                    .collect { scannedList ->
-                        _state.update { it.copy(scannedHistory = scannedList) }
-                    }
-            } catch (e: Exception) {
-                Timber.e(e, "Error in loadHistory")
-            }
+                    .collect { (scannedList, generatedList) ->
+                        // Create combined list sorted by timestamp
+                        val combined = buildList {
+                            scannedList.forEach { scan ->
+                                add(
+                                    HistoryItemData.Scanned(
+                                        id = scan.id,
+                                        timestamp = scan.timestamp,
+                                        entity = scan
+                                    )
+                                )
+                            }
+                            generatedList.forEach { gen ->
+                                add(
+                                    HistoryItemData.Generated(
+                                        id = gen.id,
+                                        timestamp = gen.createdAt,
+                                        entity = gen
+                                    )
+                                )
+                            }
+                        }.sortedByDescending { it.timestamp }
 
-            try {
-                // Load generated history
-                generatorRepository.getAllGenerated()
-                    .catch { e ->
-                        Timber.e(e, "Error loading generated history")
-                        _state.update { it.copy(error = "Failed to load generated history") }
-                    }
-                    .collect { generatedList ->
                         _state.update {
                             it.copy(
+                                scannedHistory = scannedList,
                                 generatedHistory = generatedList,
+                                combinedHistory = combined,
                                 isLoading = false
                             )
                         }
@@ -141,13 +157,42 @@ class HistoryViewModel(
 
         viewModelScope.launch {
             try {
-                if (_state.value.selectedTab == HistoryTab.SCANNED) {
-                    scanRepository.searchHistory(query).collect { results ->
-                        _state.update { it.copy(scannedHistory = results) }
+                when (_state.value.selectedTab) {
+                    HistoryTab.ALL -> {
+                        // Search both and combine
+                        combine(
+                            scanRepository.searchHistory(query),
+                            generatorRepository.searchGenerated(query)
+                        ) { scannedResults, generatedResults ->
+                            Pair(scannedResults, generatedResults)
+                        }.collect { (scannedResults, generatedResults) ->
+                            val combined = buildList {
+                                scannedResults.forEach { scan ->
+                                    add(HistoryItemData.Scanned(scan.id, scan.timestamp, scan))
+                                }
+                                generatedResults.forEach { gen ->
+                                    add(HistoryItemData.Generated(gen.id, gen.createdAt, gen))
+                                }
+                            }.sortedByDescending { it.timestamp }
+
+                            _state.update {
+                                it.copy(
+                                    scannedHistory = scannedResults,
+                                    generatedHistory = generatedResults,
+                                    combinedHistory = combined
+                                )
+                            }
+                        }
                     }
-                } else {
-                    generatorRepository.searchGenerated(query).collect { results ->
-                        _state.update { it.copy(generatedHistory = results) }
+                    HistoryTab.SCANNED -> {
+                        scanRepository.searchHistory(query).collect { results ->
+                            _state.update { it.copy(scannedHistory = results) }
+                        }
+                    }
+                    HistoryTab.GENERATED -> {
+                        generatorRepository.searchGenerated(query).collect { results ->
+                            _state.update { it.copy(generatedHistory = results) }
+                        }
                     }
                 }
             } catch (e: Exception) {
@@ -164,13 +209,42 @@ class HistoryViewModel(
 
         viewModelScope.launch {
             try {
-                if (_state.value.selectedTab == HistoryTab.SCANNED) {
-                    scanRepository.getHistoryByType(filter).collect { results ->
-                        _state.update { it.copy(scannedHistory = results) }
+                when (_state.value.selectedTab) {
+                    HistoryTab.ALL -> {
+                        // Filter both and combine
+                        combine(
+                            scanRepository.getHistoryByType(filter),
+                            generatorRepository.getGeneratedByType(filter)
+                        ) { scannedResults, generatedResults ->
+                            Pair(scannedResults, generatedResults)
+                        }.collect { (scannedResults, generatedResults) ->
+                            val combined = buildList {
+                                scannedResults.forEach { scan ->
+                                    add(HistoryItemData.Scanned(scan.id, scan.timestamp, scan))
+                                }
+                                generatedResults.forEach { gen ->
+                                    add(HistoryItemData.Generated(gen.id, gen.createdAt, gen))
+                                }
+                            }.sortedByDescending { it.timestamp }
+
+                            _state.update {
+                                it.copy(
+                                    scannedHistory = scannedResults,
+                                    generatedHistory = generatedResults,
+                                    combinedHistory = combined
+                                )
+                            }
+                        }
                     }
-                } else {
-                    generatorRepository.getGeneratedByType(filter).collect { results ->
-                        _state.update { it.copy(generatedHistory = results) }
+                    HistoryTab.SCANNED -> {
+                        scanRepository.getHistoryByType(filter).collect { results ->
+                            _state.update { it.copy(scannedHistory = results) }
+                        }
+                    }
+                    HistoryTab.GENERATED -> {
+                        generatorRepository.getGeneratedByType(filter).collect { results ->
+                            _state.update { it.copy(generatedHistory = results) }
+                        }
                     }
                 }
             } catch (e: Exception) {
@@ -196,7 +270,20 @@ class HistoryViewModel(
     private fun toggleFavorite(id: Long, isFavorite: Boolean) {
         viewModelScope.launch {
             try {
-                if (_state.value.selectedTab == HistoryTab.SCANNED) {
+                // For ALL tab, we need to check which type of item it is
+                if (_state.value.selectedTab == HistoryTab.ALL) {
+                    // Check if it's in scanned history first
+                    val scannedItem = scanRepository.getHistoryById(id)
+                    if (scannedItem != null) {
+                        scanRepository.updateScan(scannedItem.copy(isFavorite = isFavorite))
+                    } else {
+                        // Must be in generated history
+                        val generatedItem = generatorRepository.getGeneratedById(id)
+                        generatedItem?.let {
+                            generatorRepository.updateGenerated(it.copy(isFavorite = isFavorite))
+                        }
+                    }
+                } else if (_state.value.selectedTab == HistoryTab.SCANNED) {
                     val item = scanRepository.getHistoryById(id)
                     item?.let {
                         scanRepository.updateScan(it.copy(isFavorite = isFavorite))
@@ -217,7 +304,18 @@ class HistoryViewModel(
     private fun deleteItem(id: Long) {
         viewModelScope.launch {
             try {
-                if (_state.value.selectedTab == HistoryTab.SCANNED) {
+                // For ALL tab, we need to check which type of item it is
+                if (_state.value.selectedTab == HistoryTab.ALL) {
+                    // Check if it's in scanned history first
+                    val scannedItem = scanRepository.getHistoryById(id)
+                    if (scannedItem != null) {
+                        scanRepository.deleteScan(scannedItem)
+                    } else {
+                        // Must be in generated history
+                        val generatedItem = generatorRepository.getGeneratedById(id)
+                        generatedItem?.let { generatorRepository.deleteGenerated(it) }
+                    }
+                } else if (_state.value.selectedTab == HistoryTab.SCANNED) {
                     val item = scanRepository.getHistoryById(id)
                     item?.let { scanRepository.deleteScan(it) }
                 } else {
@@ -235,11 +333,34 @@ class HistoryViewModel(
         viewModelScope.launch {
             try {
                 val ids = _state.value.selectedItems.toList()
-                if (_state.value.selectedTab == HistoryTab.SCANNED) {
+
+                if (_state.value.selectedTab == HistoryTab.ALL) {
+                    // For ALL tab, separate IDs by type
+                    val scannedIds = mutableListOf<Long>()
+                    val generatedIds = mutableListOf<Long>()
+
+                    ids.forEach { id ->
+                        // Check which repository contains this ID
+                        val scannedItem = scanRepository.getHistoryById(id)
+                        if (scannedItem != null) {
+                            scannedIds.add(id)
+                        } else {
+                            generatedIds.add(id)
+                        }
+                    }
+
+                    if (scannedIds.isNotEmpty()) {
+                        scanRepository.deleteByIds(scannedIds)
+                    }
+                    if (generatedIds.isNotEmpty()) {
+                        generatorRepository.deleteByIds(generatedIds)
+                    }
+                } else if (_state.value.selectedTab == HistoryTab.SCANNED) {
                     scanRepository.deleteByIds(ids)
                 } else {
                     generatorRepository.deleteByIds(ids)
                 }
+
                 _state.update {
                     it.copy(
                         selectedItems = emptySet(),
@@ -256,7 +377,11 @@ class HistoryViewModel(
     private fun deleteAllHistory() {
         viewModelScope.launch {
             try {
-                if (_state.value.selectedTab == HistoryTab.SCANNED) {
+                if (_state.value.selectedTab == HistoryTab.ALL) {
+                    // Delete both
+                    scanRepository.deleteAll()
+                    generatorRepository.deleteAll()
+                } else if (_state.value.selectedTab == HistoryTab.SCANNED) {
                     scanRepository.deleteAll()
                 } else {
                     generatorRepository.deleteAll()

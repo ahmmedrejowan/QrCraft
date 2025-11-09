@@ -61,6 +61,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun ScannerScreen(
     viewModel: ScannerViewModel = koinViewModel(),
+    onNavigateToDetail: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -124,17 +125,17 @@ fun ScannerScreen(
         }
     }
 
-    // Show bottom sheet when scan is successful
+    // Navigate to detail when scan is successful (only once per success)
     LaunchedEffect(state) {
-        when (state) {
-            is ScannerState.Success -> {
-                showBottomSheet = true
-                haptic.success()
-            }
-            is ScannerState.Error -> {
-                haptic.error()
-            }
-            else -> {}
+        timber.log.Timber.tag("QRCraft ScannerScreen").e("LaunchedEffect - Triggered with state: ${state::class.simpleName}")
+        if (state is ScannerState.Success) {
+            timber.log.Timber.tag("QRCraft ScannerScreen").e("LaunchedEffect - Success state detected, navigating to detail. Result: ${(state as ScannerState.Success).result.displayValue}")
+            haptic.success()
+            onNavigateToDetail()
+            timber.log.Timber.tag("QRCraft ScannerScreen").e("LaunchedEffect - Navigation to detail completed")
+        } else if (state is ScannerState.Error) {
+            timber.log.Timber.tag("QRCraft ScannerScreen").e("LaunchedEffect - Error state detected")
+            haptic.error()
         }
     }
 
@@ -184,6 +185,18 @@ fun ScannerScreen(
                     ScanOverlay()
                 }
 
+                state is ScannerState.Success -> {
+                    // Show camera preview even when Success (when navigating back from detail)
+                    // This prevents white flash/blank screen
+                    CameraPreview(
+                        onBarcodeDetected = { result ->
+                            viewModel.onEvent(ScannerEvent.OnBarcodeDetected(result))
+                        },
+                        isFlashlightOn = isFlashlightOn
+                    )
+                    ScanOverlay()
+                }
+
                 state is ScannerState.Error -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
@@ -191,6 +204,17 @@ fun ScannerScreen(
                     ) {
                         Text("Error: ${(state as ScannerState.Error).message}")
                     }
+                }
+
+                else -> {
+                    // Idle or other states - show camera preview
+                    CameraPreview(
+                        onBarcodeDetected = { result ->
+                            viewModel.onEvent(ScannerEvent.OnBarcodeDetected(result))
+                        },
+                        isFlashlightOn = isFlashlightOn
+                    )
+                    ScanOverlay()
                 }
             }
 

@@ -18,51 +18,63 @@ class ScannerViewModel(
     private val scanRepository: ScanRepository
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow<ScannerState>(ScannerState.Idle)
+    private val _state = MutableStateFlow<ScannerState>(ScannerState.Scanning)
     val state: StateFlow<ScannerState> = _state.asStateFlow()
 
-    init {
-        onEvent(ScannerEvent.StartScanning)
-    }
-
     fun onEvent(event: ScannerEvent) {
+        Timber.tag("QRCraft ScannerViewModel").e("onEvent - Called with ${event::class.simpleName}")
         when (event) {
             is ScannerEvent.StartScanning -> {
+                Timber.tag("QRCraft ScannerViewModel").e("onEvent - Setting state to Scanning (was: ${_state.value::class.simpleName})")
                 _state.value = ScannerState.Scanning
-                Timber.d("Scanner started")
+                Timber.tag("QRCraft ScannerViewModel").e("onEvent - Scanner started")
             }
 
             is ScannerEvent.StopScanning -> {
+                Timber.tag("QRCraft ScannerViewModel").e("onEvent - Setting state to Idle (was: ${_state.value::class.simpleName})")
                 _state.value = ScannerState.Idle
-                Timber.d("Scanner stopped")
+                Timber.tag("QRCraft ScannerViewModel").e("onEvent - Scanner stopped")
             }
 
             is ScannerEvent.OnBarcodeDetected -> {
+                Timber.tag("QRCraft ScannerViewModel").e("onEvent - Setting state to Success (was: ${_state.value::class.simpleName})")
                 _state.value = ScannerState.Success(event.result)
-                Timber.d("Barcode detected: ${event.result.displayValue}")
+                Timber.tag("QRCraft ScannerViewModel").e("onEvent - Barcode detected: ${event.result.displayValue}")
+                // Auto-save to history
+                saveToHistory(event.result)
             }
 
             is ScannerEvent.OnResultDismissed -> {
+                Timber.tag("QRCraft ScannerViewModel").e("onEvent - Result dismissed, setting state to Scanning (was: ${_state.value::class.simpleName})")
                 _state.value = ScannerState.Scanning
             }
 
             is ScannerEvent.OnSaveToHistory -> {
                 val currentState = _state.value
+                Timber.tag("QRCraft ScannerViewModel").e("onEvent - OnSaveToHistory, current state: ${currentState::class.simpleName}")
                 if (currentState is ScannerState.Success) {
                     saveToHistory(currentState.result)
+                } else {
+                    Timber.tag("QRCraft ScannerViewModel").e("onEvent - OnSaveToHistory called but state is not Success")
                 }
             }
 
             is ScannerEvent.OnError -> {
+                Timber.tag("QRCraft ScannerViewModel").e("onEvent - Setting state to Error (was: ${_state.value::class.simpleName})")
                 _state.value = ScannerState.Error(event.message)
-                Timber.e("Scanner error: ${event.message}")
+                Timber.tag("QRCraft ScannerViewModel").e("onEvent - Scanner error: ${event.message}")
             }
         }
+    }
+
+    fun getCurrentScanResult(): com.rejown.qrcraft.domain.models.ScanResult? {
+        return (_state.value as? ScannerState.Success)?.result
     }
 
     private fun saveToHistory(result: com.rejown.qrcraft.domain.models.ScanResult) {
         viewModelScope.launch {
             try {
+                Timber.tag("QRCraft ScannerViewModel").e("saveToHistory - Starting save operation for: ${result.displayValue}")
                 val entity = ScanHistoryEntity(
                     content = result.displayValue,
                     rawValue = result.rawValue,
@@ -74,10 +86,11 @@ class ScannerViewModel(
                     imagePath = null
                 )
 
-                scanRepository.insertScan(entity)
-                Timber.d("Scan saved to history")
+                Timber.tag("QRCraft ScannerViewModel").e("saveToHistory - Entity created, calling repository.insertScan")
+                val insertedId = scanRepository.insertScan(entity)
+                Timber.tag("QRCraft ScannerViewModel").e("saveToHistory - Scan saved to history with ID: $insertedId")
             } catch (e: Exception) {
-                Timber.e(e, "Failed to save scan to history")
+                Timber.tag("QRCraft ScannerViewModel").e(e, "saveToHistory - Failed to save scan to history")
             }
         }
     }

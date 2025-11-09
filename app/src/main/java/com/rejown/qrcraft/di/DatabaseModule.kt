@@ -8,16 +8,25 @@ import org.koin.dsl.module
 val databaseModule = module {
     // Room Database
     single {
-        Room.databaseBuilder(
+        timber.log.Timber.tag("QRCraft DatabaseModule").e("init - Creating Room database")
+        val db = Room.databaseBuilder(
             androidContext(),
             QRCraftDatabase::class.java,
             "qrcraft_database"
         )
             .fallbackToDestructiveMigration()
             .build()
+        timber.log.Timber.tag("QRCraft DatabaseModule").e("init - Room database created successfully")
+        db
     }
 
     // DAOs
-    single { get<QRCraftDatabase>().scanHistoryDao() }
-    single { get<QRCraftDatabase>().generatedCodeDao() }
+    single {
+        timber.log.Timber.tag("QRCraft DatabaseModule").e("init - Creating ScanHistoryDao")
+        get<QRCraftDatabase>().scanHistoryDao()
+    }
+    single {
+        timber.log.Timber.tag("QRCraft DatabaseModule").e("init - Creating GeneratedCodeDao")
+        get<QRCraftDatabase>().generatedCodeDao()
+    }
 }
