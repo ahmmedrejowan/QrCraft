@@ -33,6 +33,8 @@ import com.rejown.qrcraft.domain.models.ContentType
 import com.rejown.qrcraft.domain.models.ScanResult
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.set
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,20 +43,20 @@ fun ScanDetailScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    timber.log.Timber.tag("QRCraft ScanDetailScreen").e("composable - Composing with result: ${scanResult.displayValue}, type: ${scanResult.contentType}")
+    timber.log.Timber.tag("QRCraft ScanDetailScree").e("composable - Composing with result: ${scanResult.displayValue}, type: ${scanResult.contentType}")
 
     val context = LocalContext.current
 
     // Handle device back button/gesture
     BackHandler {
-        timber.log.Timber.tag("QRCraft ScanDetailScreen").e("BackHandler - Device back triggered")
+        timber.log.Timber.tag("QRCraft ScanDetailScree").e("BackHandler - Device back triggered")
         onBack()
     }
 
     DisposableEffect(Unit) {
-        timber.log.Timber.tag("QRCraft ScanDetailScreen").e("DisposableEffect - Screen entered")
+        timber.log.Timber.tag("QRCraft ScanDetailScree").e("DisposableEffect - Screen entered")
         onDispose {
-            timber.log.Timber.tag("QRCraft ScanDetailScreen").e("DisposableEffect - Screen disposed")
+            timber.log.Timber.tag("QRCraft ScanDetailScree").e("DisposableEffect - Screen disposed")
         }
     }
 
@@ -620,21 +622,18 @@ private fun generateQRCode(content: String, format: com.rejown.qrcraft.domain.mo
 
         val width = bitMatrix.width
         val height = bitMatrix.height
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
+        val bitmap = createBitmap(width, height, Bitmap.Config.RGB_565)
 
         for (x in 0 until width) {
             for (y in 0 until height) {
-                bitmap.setPixel(
-                    x,
-                    y,
+                bitmap[x, y] =
                     if (bitMatrix[x, y]) android.graphics.Color.BLACK else android.graphics.Color.WHITE
-                )
             }
         }
 
         bitmap
     } catch (e: Exception) {
-        timber.log.Timber.tag("QRCraft ScanDetailScreen").e(e, "generateQRCode - Failed to generate QR code")
+        timber.log.Timber.tag("QRCraft ScanDetailScree").e(e, "generateQRCode - Failed to generate QR code")
         null
     }
 }

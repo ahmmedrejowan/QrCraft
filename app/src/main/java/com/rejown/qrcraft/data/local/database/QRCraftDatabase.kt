@@ -12,7 +12,7 @@ import com.rejown.qrcraft.data.local.database.entities.ScanHistoryEntity
         ScanHistoryEntity::class,
         GeneratedCodeEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class QRCraftDatabase : RoomDatabase() {

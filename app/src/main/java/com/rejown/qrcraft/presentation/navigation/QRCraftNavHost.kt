@@ -84,9 +84,7 @@ fun QRCraftNavHost(
                     // Would need to load existing data into creation screen
                 },
                 onBack = {
-                    navController.navigate(Screen.Main(initialTab = 1)) {
-                        popUpTo<Screen.Main> { inclusive = true }
-                    }
+                    navController.popBackStack()
                 }
             )
         }
@@ -109,23 +107,19 @@ fun QRCraftNavHost(
                         onBack = {
                             timber.log.Timber.tag("QRCraft QRCraftNavHost").e("onBack - Back pressed from ScanDetail")
                             // Reset scanner state before navigating back
-                            // This ensures camera is ready when we return to scanner screen
                             scannerViewModel.onEvent(ScannerEvent.StartScanning)
-                            navController.navigate(Screen.Main(initialTab = 0)) {
-                                popUpTo<Screen.Main> { inclusive = true }
-                            }
-                            timber.log.Timber.tag("QRCraft QRCraftNavHost").e("onBack - Navigation back to Main executed")
+                            // Simply pop back - no need to recreate the whole stack
+                            navController.popBackStack()
+                            timber.log.Timber.tag("QRCraft QRCraftNavHost").e("onBack - Popped back stack")
                         }
                     )
                 }
                 else -> {
                     timber.log.Timber.tag("QRCraft QRCraftNavHost").e("composable - State is not Success (${state::class.simpleName}), navigating back")
-                    // If state is not Success (shouldn't happen), navigate back
+                    // If state is not Success (shouldn't happen), just pop back
                     LaunchedEffect(Unit) {
-                        timber.log.Timber.tag("QRCraft QRCraftNavHost").e("LaunchedEffect - Executing fallback navigation to Main")
-                        navController.navigate(Screen.Main(initialTab = 0)) {
-                            popUpTo<Screen.Main> { inclusive = true }
-                        }
+                        timber.log.Timber.tag("QRCraft QRCraftNavHost").e("LaunchedEffect - Popping back stack")
+                        navController.popBackStack()
                     }
                 }
             }
@@ -150,20 +144,16 @@ fun QRCraftNavHost(
                     }
                 }
                 state.error != null -> {
-                    // Error state - navigate back
+                    // Error state - pop back
                     LaunchedEffect(Unit) {
-                        navController.navigate(Screen.Main(initialTab = 2)) {
-                            popUpTo<Screen.Main> { inclusive = true }
-                        }
+                        navController.popBackStack()
                     }
                 }
                 state.scanResult != null -> {
                     ScanDetailScreen(
                         scanResult = state.scanResult!!,
                         onBack = {
-                            navController.navigate(Screen.Main(initialTab = 2)) {
-                                popUpTo<Screen.Main> { inclusive = true }
-                            }
+                            navController.popBackStack()
                         }
                     )
                 }
