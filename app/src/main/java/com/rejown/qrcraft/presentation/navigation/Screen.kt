@@ -1,11 +1,43 @@
 package com.rejown.qrcraft.presentation.navigation
 
-sealed class Screen(val route: String) {
-    data object Scanner : Screen("scanner")
-    data object Generator : Screen("generator")
-    data object History : Screen("history")
-    data object Settings : Screen("settings")
-    data object Detail : Screen("detail/{id}/{type}") {
-        fun createRoute(id: Long, type: String) = "detail/$id/$type"
-    }
+import kotlinx.serialization.Serializable
+
+@Serializable
+sealed class Screen {
+    // Main container with bottom nav
+    @Serializable
+    data class Main(
+        val initialTab: Int? = null
+    ) : Screen()
+
+    // Bottom nav destinations (nested in Main)
+    @Serializable
+    data object Scanner : Screen()
+
+    @Serializable
+    data object Generator : Screen()
+
+    @Serializable
+    data object History : Screen()
+
+    @Serializable
+    data object Settings : Screen()
+
+    // App-level screens (outside bottom nav)
+    @Serializable
+    data class Detail(
+        val id: Long,
+        val type: String
+    ) : Screen()
+
+    // Generator flow screens (will be added later)
+    @Serializable
+    data class Creation(
+        val templateId: String
+    ) : Screen()
+
+    @Serializable
+    data class CodeDetails(
+        val codeId: Long
+    ) : Screen()
 }

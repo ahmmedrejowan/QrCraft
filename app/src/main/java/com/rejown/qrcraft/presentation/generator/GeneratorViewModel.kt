@@ -42,12 +42,51 @@ class GeneratorViewModel(
                 }
             }
 
+            is GeneratorEvent.OnBarcodeTypeSelected -> {
+                val newFormat = when (event.type) {
+                    com.rejown.qrcraft.domain.models.BarcodeType.TWO_D ->
+                        com.rejown.qrcraft.domain.models.BarcodeFormat.QR_CODE
+                    com.rejown.qrcraft.domain.models.BarcodeType.ONE_D ->
+                        com.rejown.qrcraft.domain.models.BarcodeFormat.CODE_128
+                }
+                _state.update {
+                    it.copy(
+                        selectedBarcodeType = event.type,
+                        selectedBarcodeFormat = newFormat,
+                        generatedCode = null,
+                        error = null
+                    )
+                }
+                // Regenerate if content exists
+                if (_state.value.inputContent.isNotEmpty() && _state.value.realTimePreview) {
+                    generateCode()
+                }
+            }
+
+            is GeneratorEvent.OnBarcodeFormatSelected -> {
+                _state.update {
+                    it.copy(
+                        selectedBarcodeFormat = event.format,
+                        generatedCode = null,
+                        error = null
+                    )
+                }
+                // Regenerate if content exists
+                if (_state.value.inputContent.isNotEmpty() && _state.value.realTimePreview) {
+                    generateCode()
+                }
+            }
+
             is GeneratorEvent.OnInputChanged -> {
                 _state.update {
                     it.copy(
                         inputContent = event.input,
                         error = null
                     )
+                }
+                // Real-time generation
+                if (event.input.isNotEmpty() && _state.value.realTimePreview) {
+                    generateCode()
                 }
             }
 
@@ -106,8 +145,9 @@ class GeneratorViewModel(
                 )
 
                 val bitmap = withContext(Dispatchers.Default) {
-                    CodeGenerator.generateQRCode(
+                    CodeGenerator.generateCode(
                         content = formattedContent,
+                        format = currentState.selectedBarcodeFormat,
                         customization = currentState.customization
                     )
                 }
@@ -115,7 +155,7 @@ class GeneratorViewModel(
                 if (bitmap != null) {
                     val generatedCode = com.rejown.qrcraft.domain.models.GeneratedCode(
                         content = formattedContent,
-                        format = com.rejown.qrcraft.domain.models.BarcodeFormat.QR_CODE,
+                        format = currentState.selectedBarcodeFormat,
                         contentType = currentState.selectedContentType,
                         bitmap = bitmap,
                         customization = currentState.customization

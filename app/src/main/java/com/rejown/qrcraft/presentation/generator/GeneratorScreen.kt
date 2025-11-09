@@ -30,9 +30,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
+import com.rejown.qrcraft.presentation.generator.components.BarcodeFormatSelector
 import com.rejown.qrcraft.presentation.generator.components.CodePreview
-import com.rejown.qrcraft.presentation.generator.components.ContentTypeSelector
-import com.rejown.qrcraft.presentation.generator.components.CustomizationPanel
+import com.rejown.qrcraft.presentation.generator.components.ContentTypeDropdown
 import com.rejown.qrcraft.presentation.generator.components.InputForm
 import com.rejown.qrcraft.presentation.generator.state.GeneratorEvent
 import com.rejown.qrcraft.utils.rememberHapticFeedback
@@ -53,116 +53,103 @@ fun GeneratorScreen(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
+            .padding(vertical = 16.dp)
     ) {
-            // Content type selector
-            ContentTypeSelector(
-                selectedType = state.selectedContentType,
-                onTypeSelected = { type ->
-                    viewModel.onEvent(GeneratorEvent.OnContentTypeSelected(type))
-                    haptic.lightClick()
-                }
-            )
+        // Real-time preview at the top with fixed size
+        CodePreview(
+            bitmap = state.generatedCode?.bitmap,
+            isGenerating = state.isGenerating,
+            error = state.error
+        )
 
-            Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-            // Input form
-            InputForm(
-                contentType = state.selectedContentType,
-                content = state.inputContent,
-                onContentChange = { content ->
-                    viewModel.onEvent(GeneratorEvent.OnInputChanged(content))
-                }
-            )
+        // Content type dropdown
+        ContentTypeDropdown(
+            selectedType = state.selectedContentType,
+            onTypeSelected = { type ->
+                viewModel.onEvent(GeneratorEvent.OnContentTypeSelected(type))
+                haptic.lightClick()
+            }
+        )
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Barcode format selector (1D/2D tabs)
+        BarcodeFormatSelector(
+            selectedType = state.selectedBarcodeType,
+            selectedFormat = state.selectedBarcodeFormat,
+            onTypeSelected = { type ->
+                viewModel.onEvent(GeneratorEvent.OnBarcodeTypeSelected(type))
+                haptic.lightClick()
+            },
+            onFormatSelected = { format ->
+                viewModel.onEvent(GeneratorEvent.OnBarcodeFormatSelected(format))
+                haptic.lightClick()
+            }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Input form
+        InputForm(
+            contentType = state.selectedContentType,
+            content = state.inputContent,
+            onContentChange = { content ->
+                viewModel.onEvent(GeneratorEvent.OnInputChanged(content))
+            }
+        )
+
+        // Action buttons (only show when code is generated)
+        if (state.generatedCode != null) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Customization panel
-            CustomizationPanel(
-                isExpanded = state.showCustomization,
-                customization = state.customization,
-                onToggleExpanded = {
-                    viewModel.onEvent(GeneratorEvent.OnToggleCustomization)
-                },
-                onCustomizationChanged = { customization ->
-                    viewModel.onEvent(GeneratorEvent.OnCustomizationChanged(customization))
-                }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Generate button
-            Button(
-                onClick = {
-                    viewModel.onEvent(GeneratorEvent.OnGenerateClicked)
-                    haptic.mediumClick()
-                },
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
-                enabled = state.inputContent.isNotEmpty() && !state.isGenerating
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("Generate QR Code")
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Code preview
-            CodePreview(
-                bitmap = state.generatedCode?.bitmap,
-                isGenerating = state.isGenerating,
-                error = state.error
-            )
-
-            // Action buttons (only show when code is generated)
-            if (state.generatedCode != null) {
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                OutlinedButton(
+                    onClick = {
+                        state.generatedCode?.bitmap?.let { bitmap ->
+                            shareImage(context, bitmap)
+                            haptic.lightClick()
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
                 ) {
-                    OutlinedButton(
-                        onClick = {
-                            state.generatedCode?.bitmap?.let { bitmap ->
-                                shareImage(context, bitmap)
-                                haptic.lightClick()
-                            }
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Share,
-                            contentDescription = "Share"
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Share")
-                    }
-
-                    FilledTonalButton(
-                        onClick = {
-                            viewModel.onEvent(GeneratorEvent.OnSaveClicked)
-                            haptic.success()
-                            Toast.makeText(
-                                context,
-                                "Saved to history",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Save,
-                            contentDescription = "Save"
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Save")
-                    }
+                    Icon(
+                        imageVector = Icons.Default.Share,
+                        contentDescription = "Share"
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Share")
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                FilledTonalButton(
+                    onClick = {
+                        viewModel.onEvent(GeneratorEvent.OnSaveClicked)
+                        haptic.success()
+                        Toast.makeText(
+                            context,
+                            "Saved to history",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Save,
+                        contentDescription = "Save"
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Save")
+                }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+        }
     }
 }
 

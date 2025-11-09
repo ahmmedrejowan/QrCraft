@@ -26,6 +26,15 @@ object CodeGenerator {
 
     fun generateCode(
         content: String,
+        format: com.rejown.qrcraft.domain.models.BarcodeFormat,
+        customization: CodeCustomization = CodeCustomization()
+    ): Bitmap? {
+        val zxingFormat = mapToZXingFormat(format)
+        return generateCode(content, zxingFormat, customization)
+    }
+
+    private fun generateCode(
+        content: String,
         format: BarcodeFormat,
         customization: CodeCustomization = CodeCustomization()
     ): Bitmap? {
@@ -153,5 +162,24 @@ object CodeGenerator {
 
     fun createGeoLocation(latitude: Double, longitude: Double): String {
         return "geo:$latitude,$longitude"
+    }
+
+    private fun mapToZXingFormat(format: com.rejown.qrcraft.domain.models.BarcodeFormat): BarcodeFormat {
+        return when (format) {
+            com.rejown.qrcraft.domain.models.BarcodeFormat.QR_CODE -> BarcodeFormat.QR_CODE
+            com.rejown.qrcraft.domain.models.BarcodeFormat.AZTEC -> BarcodeFormat.AZTEC
+            com.rejown.qrcraft.domain.models.BarcodeFormat.DATA_MATRIX -> BarcodeFormat.DATA_MATRIX
+            com.rejown.qrcraft.domain.models.BarcodeFormat.PDF417 -> BarcodeFormat.PDF_417
+            com.rejown.qrcraft.domain.models.BarcodeFormat.EAN_8 -> BarcodeFormat.EAN_8
+            com.rejown.qrcraft.domain.models.BarcodeFormat.EAN_13 -> BarcodeFormat.EAN_13
+            com.rejown.qrcraft.domain.models.BarcodeFormat.UPC_A -> BarcodeFormat.UPC_A
+            com.rejown.qrcraft.domain.models.BarcodeFormat.UPC_E -> BarcodeFormat.UPC_E
+            com.rejown.qrcraft.domain.models.BarcodeFormat.CODE_39 -> BarcodeFormat.CODE_39
+            com.rejown.qrcraft.domain.models.BarcodeFormat.CODE_93 -> BarcodeFormat.CODE_93
+            com.rejown.qrcraft.domain.models.BarcodeFormat.CODE_128 -> BarcodeFormat.CODE_128
+            com.rejown.qrcraft.domain.models.BarcodeFormat.ITF -> BarcodeFormat.ITF
+            com.rejown.qrcraft.domain.models.BarcodeFormat.CODABAR -> BarcodeFormat.CODABAR
+            com.rejown.qrcraft.domain.models.BarcodeFormat.UNKNOWN -> BarcodeFormat.QR_CODE
+        }
     }
 }

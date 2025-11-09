@@ -1,20 +1,26 @@
 package com.rejown.qrcraft.domain.models
 
-enum class BarcodeFormat(val displayName: String) {
-    QR_CODE("QR Code"),
-    AZTEC("Aztec"),
-    DATA_MATRIX("Data Matrix"),
-    PDF417("PDF417"),
-    EAN_8("EAN-8"),
-    EAN_13("EAN-13"),
-    UPC_A("UPC-A"),
-    UPC_E("UPC-E"),
-    CODE_39("Code 39"),
-    CODE_93("Code 93"),
-    CODE_128("Code 128"),
-    ITF("ITF"),
-    CODABAR("Codabar"),
-    UNKNOWN("Unknown");
+enum class BarcodeFormat(
+    val displayName: String,
+    val type: BarcodeType
+) {
+    // 2D Barcodes
+    QR_CODE("QR Code", BarcodeType.TWO_D),
+    AZTEC("Aztec", BarcodeType.TWO_D),
+    DATA_MATRIX("Data Matrix", BarcodeType.TWO_D),
+    PDF417("PDF417", BarcodeType.TWO_D),
+
+    // 1D Barcodes
+    EAN_8("EAN-8", BarcodeType.ONE_D),
+    EAN_13("EAN-13", BarcodeType.ONE_D),
+    UPC_A("UPC-A", BarcodeType.ONE_D),
+    UPC_E("UPC-E", BarcodeType.ONE_D),
+    CODE_39("Code 39", BarcodeType.ONE_D),
+    CODE_93("Code 93", BarcodeType.ONE_D),
+    CODE_128("Code 128", BarcodeType.ONE_D),
+    ITF("ITF", BarcodeType.ONE_D),
+    CODABAR("Codabar", BarcodeType.ONE_D),
+    UNKNOWN("Unknown", BarcodeType.TWO_D);
 
     companion object {
         fun fromMLKitFormat(mlkitFormat: Int): BarcodeFormat {
@@ -35,5 +41,14 @@ enum class BarcodeFormat(val displayName: String) {
                 else -> UNKNOWN
             }
         }
+
+        fun getByType(type: BarcodeType): List<BarcodeFormat> {
+            return values().filter { it.type == type && it != UNKNOWN }
+        }
     }
+}
+
+enum class BarcodeType(val displayName: String) {
+    ONE_D("1D Barcode"),
+    TWO_D("2D Barcode")
 }

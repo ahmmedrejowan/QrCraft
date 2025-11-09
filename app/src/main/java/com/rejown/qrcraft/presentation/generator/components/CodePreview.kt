@@ -31,14 +31,17 @@ fun CodePreview(
         modifier = modifier
             .fillMaxWidth()
             .padding(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        shape = RoundedCornerShape(16.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.White)
-                .padding(24.dp),
+                .size(280.dp) // Fixed size container
+                .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
             when {
@@ -57,8 +60,8 @@ fun CodePreview(
                 bitmap != null -> {
                     Image(
                         bitmap = bitmap.asImageBitmap(),
-                        contentDescription = "Generated QR Code",
-                        modifier = Modifier.size(280.dp)
+                        contentDescription = "Generated Code Preview",
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
 

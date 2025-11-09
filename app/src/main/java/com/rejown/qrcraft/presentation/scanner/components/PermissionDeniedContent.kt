@@ -1,8 +1,5 @@
 package com.rejown.qrcraft.presentation.scanner.components
 
-import android.content.Intent
-import android.net.Uri
-import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -15,12 +12,10 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
@@ -30,8 +25,6 @@ fun PermissionDeniedContent(
     isPermanentlyDenied: Boolean = false,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
-
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -74,22 +67,6 @@ fun PermissionDeniedContent(
             modifier = Modifier.padding(horizontal = 16.dp)
         ) {
             Text(if (isPermanentlyDenied) "Open Settings" else "Grant Permission")
-        }
-
-        if (!isPermanentlyDenied) {
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedButton(
-                onClick = {
-                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                        data = Uri.fromParts("package", context.packageName, null)
-                    }
-                    context.startActivity(intent)
-                },
-                modifier = Modifier.padding(horizontal = 16.dp)
-            ) {
-                Text("Open Settings")
-            }
         }
     }
 }

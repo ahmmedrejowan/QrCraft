@@ -118,8 +118,8 @@ fun ScannerScreen(
     // Check and request camera permission with better UX
     LaunchedEffect(Unit) {
         if (!cameraPermissionState.status.isGranted && !hasCheckedPermission) {
-            hasCheckedPermission = true
             // Show rationale first instead of directly requesting
+            // Don't set hasCheckedPermission here - wait until user actually responds
             showPermissionRationale = true
         }
     }
@@ -148,7 +148,10 @@ fun ScannerScreen(
             when {
                 !cameraPermissionState.status.isGranted -> {
                     // Check if permission is permanently denied
-                    val isPermanentlyDenied = !cameraPermissionState.status.shouldShowRationale && hasCheckedPermission
+                    // Permanently denied = user denied AND shouldShowRationale is false AND we've asked before
+                    val isPermanentlyDenied = !cameraPermissionState.status.shouldShowRationale &&
+                                             hasCheckedPermission &&
+                                             !showPermissionRationale
 
                     // Permission denied - show helpful UI
                     PermissionDeniedContent(
@@ -162,6 +165,7 @@ fun ScannerScreen(
                                 context.startActivity(intent)
                             } else {
                                 // Normal permission request
+                                hasCheckedPermission = true
                                 cameraPermissionState.launchPermissionRequest()
                             }
                             haptic.lightClick()
@@ -286,8 +290,10 @@ fun ScannerScreen(
 
         // Permission rationale bottom sheet
         if (showPermissionRationale) {
-            // Check if permission is permanently denied
-            val isPermanentlyDeniedInSheet = !cameraPermissionState.status.shouldShowRationale && hasCheckedPermission
+            // On first launch, shouldShowRationale is false, so don't treat it as permanently denied
+            // Only permanently denied if user has actually been asked before
+            val isPermanentlyDeniedInSheet = !cameraPermissionState.status.shouldShowRationale &&
+                                            hasCheckedPermission
 
             PermissionRationaleSheet(
                 sheetState = permissionRationaleSheetState,

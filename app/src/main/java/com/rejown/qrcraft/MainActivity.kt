@@ -7,9 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -18,8 +16,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.rejown.qrcraft.data.preferences.PreferencesManager
-import com.rejown.qrcraft.presentation.components.BottomNavigationBar
-import com.rejown.qrcraft.presentation.navigation.NavGraph
 import com.rejown.qrcraft.presentation.onboarding.OnboardingScreen
 import com.rejown.qrcraft.ui.theme.QRCraftTheme
 import kotlinx.coroutines.launch
@@ -66,18 +62,10 @@ fun MainScreen(preferencesManager: PreferencesManager) {
             )
         }
         true -> {
-            // Show main app
-            Scaffold(
-                modifier = Modifier.fillMaxSize(),
-                bottomBar = {
-                    BottomNavigationBar(navController = navController)
-                }
-            ) { innerPadding ->
-                NavGraph(
-                    navController = navController,
-                    modifier = Modifier.padding(innerPadding)
-                )
-            }
+            // Show main app with new navigation structure
+            com.rejown.qrcraft.presentation.navigation.QRCraftNavHost(
+                navController = navController
+            )
         }
     }
 }

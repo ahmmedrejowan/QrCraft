@@ -111,7 +111,7 @@ fun HistoryScreen(
                                             viewModel.onEvent(HistoryEvent.OnItemLongPressed(item.id))
                                         } else {
                                             navController.navigate(
-                                                Screen.Detail.createRoute(item.id, "scan")
+                                                Screen.Detail(id = item.id, type = "scan")
                                             )
                                         }
                                     },
@@ -159,7 +159,7 @@ fun HistoryScreen(
                                             viewModel.onEvent(HistoryEvent.OnItemLongPressed(item.id))
                                         } else {
                                             navController.navigate(
-                                                Screen.Detail.createRoute(item.id, "generated")
+                                                Screen.Detail(id = item.id, type = "generated")
                                             )
                                         }
                                     },

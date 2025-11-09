@@ -16,31 +16,34 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.rejown.qrcraft.presentation.navigation.Screen
 
+/**
+ * Bottom navigation items with Material Icons
+ */
 sealed class BottomNavItem(
-    val route: String,
+    val route: Screen,
     val icon: ImageVector,
     val label: String
 ) {
     data object Scanner : BottomNavItem(
-        route = Screen.Scanner.route,
+        route = Screen.Scanner,
         icon = Icons.Default.QrCodeScanner,
         label = "Scan"
     )
 
     data object Generator : BottomNavItem(
-        route = Screen.Generator.route,
+        route = Screen.Generator,
         icon = Icons.Default.Create,
         label = "Generate"
     )
 
     data object History : BottomNavItem(
-        route = Screen.History.route,
+        route = Screen.History,
         icon = Icons.Default.History,
         label = "History"
     )
 
     data object Settings : BottomNavItem(
-        route = Screen.Settings.route,
+        route = Screen.Settings,
         icon = Icons.Default.Settings,
         label = "Settings"
     )
@@ -56,16 +59,25 @@ fun BottomNavigationBar(navController: NavController) {
     )
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
+    val currentDestination = navBackStackEntry?.destination
 
     NavigationBar {
         items.forEach { item ->
+            // Check if current destination matches this item's route
+            val isSelected = when (item.route) {
+                is Screen.Scanner -> currentDestination?.route?.contains("Scanner") == true
+                is Screen.Generator -> currentDestination?.route?.contains("Generator") == true
+                is Screen.History -> currentDestination?.route?.contains("History") == true
+                is Screen.Settings -> currentDestination?.route?.contains("Settings") == true
+                else -> false
+            }
+
             NavigationBarItem(
                 icon = { Icon(item.icon, contentDescription = item.label) },
                 label = { Text(item.label) },
-                selected = currentRoute == item.route,
+                selected = isSelected,
                 onClick = {
-                    if (currentRoute != item.route) {
+                    if (!isSelected) {
                         navController.navigate(item.route) {
                             popUpTo(navController.graph.startDestinationId) {
                                 saveState = true
