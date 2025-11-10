@@ -12,7 +12,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.rejown.qrcraft.presentation.detail.DetailScreen
 import com.rejown.qrcraft.presentation.generator.creation.CreationScreen
 import com.rejown.qrcraft.presentation.generator.details.CodeDetailScreen
 import com.rejown.qrcraft.presentation.scanner.details.ScanDetailScreen
@@ -44,17 +43,7 @@ fun QRCraftNavHost(
         }
 
         // ============ APP-LEVEL SCREENS ============
-
-        composable<Screen.Detail> { backStackEntry ->
-            val detail = backStackEntry.toRoute<Screen.Detail>()
-            DetailScreen(
-                id = detail.id,
-                type = detail.type,
-                navController = navController
-            )
-        }
-
-        // ============ GENERATOR FLOW SCREENS (To be implemented) ============
+        // ============ GENERATOR FLOW SCREENS ============
 
         composable<Screen.Creation> { backStackEntry ->
             val creation = backStackEntry.toRoute<Screen.Creation>()

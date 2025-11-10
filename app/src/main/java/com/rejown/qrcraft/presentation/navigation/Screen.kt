@@ -24,13 +24,7 @@ sealed class Screen {
     data object Settings : Screen()
 
     // App-level screens (outside bottom nav)
-    @Serializable
-    data class Detail(
-        val id: Long,
-        val type: String
-    ) : Screen()
-
-    // Generator flow screens (will be added later)
+    // Generator flow screens
     @Serializable
     data class Creation(
         val templateId: String
