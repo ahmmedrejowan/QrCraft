@@ -42,18 +42,28 @@ fun ScanDetailScreen(
     scanResult: ScanResult,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
-    autoSave: Boolean = true, // Auto-save for fresh scans, false for history items
-    scannerViewModel: com.rejown.qrcraft.presentation.scanner.ScannerViewModel = org.koin.androidx.compose.koinViewModel()
+    autoSave: Boolean = true // Auto-save for fresh scans, false for history items
 ) {
     timber.log.Timber.tag("QRCraft ScanDetailScree").e("composable - Composing with result: ${scanResult.displayValue}, type: ${scanResult.contentType}, autoSave: $autoSave")
 
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
+
+    // Get the singleton ScannerViewModel instance (not creating new instance with koinViewModel)
+    val scannerViewModel: com.rejown.qrcraft.presentation.scanner.ScannerViewModel = org.koin.compose.koinInject()
+
+    // Reset scanner state immediately when entering detail screen (for fresh scans)
+    // This prepares the scanner for the next scan right away
+    if (autoSave) {
+        LaunchedEffect(Unit) {
+            timber.log.Timber.tag("QRCraft ScanDetailScree").e("LaunchedEffect - Resetting scanner to Scanning (preparing for next scan)")
+            scannerViewModel.onEvent(com.rejown.qrcraft.presentation.scanner.state.ScannerEvent.StartScanning)
+        }
+    }
 
     // Auto-save to database in the background for fresh scans (not for history items)
     if (autoSave) {
         LaunchedEffect(scanResult) {
-            timber.log.Timber.tag("QRCraft ScanDetailScree").e("LaunchedEffect - Auto-saving scan to database")
+            timber.log.Timber.tag("QRCraft ScanDetailScree").e("LaunchedEffect - Auto-saving scan to database via ViewModel")
             val savedId = scannerViewModel.saveToHistory(scanResult)
             timber.log.Timber.tag("QRCraft ScanDetailScree").e("LaunchedEffect - Scan saved with ID: $savedId")
         }
