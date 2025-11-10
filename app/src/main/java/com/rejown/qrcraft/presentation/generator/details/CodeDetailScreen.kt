@@ -7,10 +7,13 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -21,8 +24,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.rejown.qrcraft.utils.rememberHapticFeedback
 import kotlinx.coroutines.launch
@@ -135,25 +140,7 @@ fun CodeDetailScreen(
     }
 
     // Copy bottom sheet
-    if (state.showCopyBottomSheet) {
-        ModalBottomSheet(
-            onDismissRequest = viewModel::hideCopyBottomSheet,
-            sheetState = rememberModalBottomSheetState()
-        ) {
-            CopyOptionsBottomSheet(
-                onCopyContent = {
-                    viewModel.copyContent()
-                    haptic.lightClick()
-                },
-                onCopyQRCode = {
-                    scope.launch {
-                        viewModel.copyQRImage()
-                        haptic.lightClick()
-                    }
-                }
-            )
-        }
-    }
+    // Copy bottom sheet removed - copy button now directly copies content
 
     Scaffold(
         topBar = {
@@ -257,7 +244,7 @@ fun CodeDetailScreen(
                     CodeDetailContent(
                         state = state,
                         onCopy = {
-                            viewModel.showCopyBottomSheet()
+                            viewModel.copyContent()
                             haptic.lightClick()
                         },
                         onShare = {
@@ -270,40 +257,7 @@ fun CodeDetailScreen(
                                 haptic.success()
                             }
                         },
-                        onOpen = {
-                            // Smart action based on content type
-                            val content = code.formattedContent
-                            try {
-                                when {
-                                    content.startsWith("http://") || content.startsWith("https://") -> {
-                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(content))
-                                        context.startActivity(intent)
-                                    }
-                                    content.startsWith("mailto:") -> {
-                                        val intent = Intent(Intent.ACTION_SENDTO, Uri.parse(content))
-                                        context.startActivity(intent)
-                                    }
-                                    content.startsWith("tel:") -> {
-                                        val intent = Intent(Intent.ACTION_DIAL, Uri.parse(content))
-                                        context.startActivity(intent)
-                                    }
-                                    content.startsWith("sms:") -> {
-                                        val intent = Intent(Intent.ACTION_SENDTO, Uri.parse(content))
-                                        context.startActivity(intent)
-                                    }
-                                    else -> {
-                                        // Try as URL
-                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://$content"))
-                                        context.startActivity(intent)
-                                    }
-                                }
-                                haptic.lightClick()
-                            } catch (e: Exception) {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar("Unable to open content")
-                                }
-                            }
-                        },
+                        onOpen = getOpenAction(code, context, scope, snackbarHostState, haptic),
                         onEdit = onEdit?.let { editFn ->
                             {
                                 editFn(code.templateId)
@@ -319,6 +273,83 @@ fun CodeDetailScreen(
                 }
             }
         }
+    }
+}
+
+private fun getOpenAction(
+    code: com.rejown.qrcraft.data.local.database.entities.GeneratedCodeEntity,
+    context: android.content.Context,
+    scope: kotlinx.coroutines.CoroutineScope,
+    snackbarHostState: SnackbarHostState,
+    haptic: com.rejown.qrcraft.utils.HapticFeedback
+): (() -> Unit)? {
+    val content = code.formattedContent
+    val type = code.barcodeType.uppercase()
+
+    // Determine if this content type should have an action button
+    return when {
+        type.contains("URL") || type.contains("LINK") ||
+        content.startsWith("http://", ignoreCase = true) ||
+        content.startsWith("https://", ignoreCase = true) -> {
+            {
+                try {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(content))
+                    context.startActivity(intent)
+                    haptic.lightClick()
+                } catch (e: Exception) {
+                    scope.launch {
+                        snackbarHostState.showSnackbar("Unable to open URL")
+                    }
+                }
+            }
+        }
+        type.contains("EMAIL") || content.startsWith("mailto:", ignoreCase = true) -> {
+            {
+                try {
+                    val emailUri = if (content.startsWith("mailto:")) content else "mailto:$content"
+                    val intent = Intent(Intent.ACTION_SENDTO, Uri.parse(emailUri))
+                    context.startActivity(intent)
+                    haptic.lightClick()
+                } catch (e: Exception) {
+                    scope.launch {
+                        snackbarHostState.showSnackbar("Unable to open email")
+                    }
+                }
+            }
+        }
+        type.contains("PHONE") || type.contains("TEL") || content.startsWith("tel:", ignoreCase = true) -> {
+            {
+                try {
+                    val telUri = if (content.startsWith("tel:")) content else "tel:$content"
+                    val intent = Intent(Intent.ACTION_DIAL, Uri.parse(telUri))
+                    context.startActivity(intent)
+                    haptic.lightClick()
+                } catch (e: Exception) {
+                    scope.launch {
+                        snackbarHostState.showSnackbar("Unable to open dialer")
+                    }
+                }
+            }
+        }
+        type.contains("SMS") || content.startsWith("sms:", ignoreCase = true) || content.startsWith("smsto:", ignoreCase = true) -> {
+            {
+                try {
+                    val smsUri = when {
+                        content.startsWith("sms:") || content.startsWith("smsto:") -> content
+                        else -> "sms:$content"
+                    }
+                    val intent = Intent(Intent.ACTION_SENDTO, Uri.parse(smsUri))
+                    context.startActivity(intent)
+                    haptic.lightClick()
+                } catch (e: Exception) {
+                    scope.launch {
+                        snackbarHostState.showSnackbar("Unable to open messaging")
+                    }
+                }
+            }
+        }
+        type.contains("WIFI") -> null // WiFi doesn't have a simple intent action
+        else -> null // Plain text, vCard, etc. don't need an open action
     }
 }
 
@@ -340,31 +371,44 @@ private fun CodeDetailContent(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        // QR Code Image
+        // QR Code Image - Adaptive size based on barcode type
+        val is2DBarcode = is2DBarcodeFormat(code.barcodeFormat)
+        val previewModifier = if (is2DBarcode) {
+            // 2D codes (QR, Data Matrix, Aztec, etc.) - smaller square
+            Modifier
+                .fillMaxWidth(0.75f) // 75% of screen width
+                .aspectRatio(1f)
+                .align(Alignment.CenterHorizontally)
+        } else {
+            // 1D codes (linear barcodes) - rectangle with same height as reduced square
+            Modifier
+                .fillMaxWidth()
+                .height(240.dp) // Same as 75% width on most phones
+        }
+
         Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            modifier = previewModifier,
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f)
+                    .fillMaxSize()
                     .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
                 state.bitmap?.let { bitmap ->
                     Image(
                         bitmap = bitmap.asImageBitmap(),
-                        contentDescription = "Generated QR Code",
+                        contentDescription = "Generated ${if (is2DBarcode) "QR" else "Barcode"}",
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(24.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(androidx.compose.ui.graphics.Color.White)
-                            .padding(16.dp)
+                            .padding(if (is2DBarcode) 32.dp else 24.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color.White)
+                            .padding(if (is2DBarcode) 20.dp else 16.dp)
                     )
                 } ?: Text(
                     text = "Image not available",
@@ -373,31 +417,47 @@ private fun CodeDetailContent(
             }
         }
 
-        // Action Buttons - Row 1
+        // Content - MOVED HERE (below preview)
+        ContentSection(content = code.formattedContent)
+
+        // Note (if exists) - RIGHT AFTER CONTENT
+        code.note?.let { note ->
+            NoteSection(note = note)
+        }
+
+        // Action Buttons - Row 1 (Primary Actions)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Copy
-            OutlinedButton(
-                onClick = onCopy,
-                modifier = Modifier.weight(1f),
-                enabled = !state.isCopying
-            ) {
-                if (state.isCopying) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
-                        strokeWidth = 2.dp
-                    )
-                } else {
+            // Open/Action button (only show if applicable) - PRIMARY ACTION
+            if (onOpen != null) {
+                val type = code.barcodeType.uppercase()
+                val content = code.formattedContent
+                val (actionIcon, actionText) = when {
+                    type.contains("URL") || type.contains("LINK") || content.startsWith("http") ->
+                        Icons.Default.OpenInBrowser to "Open"
+                    type.contains("EMAIL") || content.startsWith("mailto:") ->
+                        Icons.Default.Email to "Email"
+                    type.contains("PHONE") || type.contains("TEL") || content.startsWith("tel:") ->
+                        Icons.Default.Phone to "Call"
+                    type.contains("SMS") || content.startsWith("sms:") ->
+                        Icons.Default.Message to "Message"
+                    else -> Icons.Default.OpenInNew to "Open"
+                }
+
+                Button(
+                    onClick = onOpen,
+                    modifier = Modifier.weight(1f)
+                ) {
                     Icon(
-                        imageVector = Icons.Default.ContentCopy,
+                        imageVector = actionIcon,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp)
                     )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(actionText)
                 }
-                Spacer(modifier = Modifier.width(6.dp))
-                Text("Copy")
             }
 
             // Share
@@ -414,6 +474,26 @@ private fun CodeDetailContent(
                 Text("Share")
             }
 
+            // Copy
+            OutlinedButton(
+                onClick = onCopy,
+                modifier = Modifier.weight(1f)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ContentCopy,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("Copy")
+            }
+        }
+
+        // Action Buttons - Row 2 (Secondary Actions)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             // Save
             OutlinedButton(
                 onClick = onSave,
@@ -435,42 +515,10 @@ private fun CodeDetailContent(
                 Spacer(modifier = Modifier.width(6.dp))
                 Text("Save")
             }
-        }
-
-        // Action Buttons - Row 2
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            // Open/Action button (smart based on content type)
-            if (onOpen != null) {
-                val content = code.formattedContent
-                val (actionIcon, actionText) = when {
-                    content.startsWith("http://") || content.startsWith("https://") ->
-                        Icons.Default.OpenInBrowser to "Open"
-                    content.startsWith("mailto:") -> Icons.Default.Email to "Email"
-                    content.startsWith("tel:") -> Icons.Default.Phone to "Call"
-                    content.startsWith("sms:") -> Icons.Default.Message to "Message"
-                    else -> Icons.Default.OpenInNew to "Open"
-                }
-
-                FilledTonalButton(
-                    onClick = onOpen,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Icon(
-                        imageVector = actionIcon,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(actionText)
-                }
-            }
 
             // Edit
             if (onEdit != null) {
-                FilledTonalButton(
+                OutlinedButton(
                     onClick = onEdit,
                     modifier = Modifier.weight(1f)
                 ) {
@@ -490,7 +538,8 @@ private fun CodeDetailContent(
                 modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = MaterialTheme.colorScheme.error
-                )
+                ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
@@ -502,63 +551,318 @@ private fun CodeDetailContent(
             }
         }
 
-        HorizontalDivider()
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
-        // Template Info
-        InfoSection(title = "Template") {
-            InfoRow(label = "Name", value = code.templateName)
-            InfoRow(label = "Type", value = code.barcodeType)
-            InfoRow(label = "Format", value = code.barcodeFormat)
-        }
+        // Template Info - Redesigned
+        TemplateInfoSection(
+            templateName = code.templateName,
+            barcodeType = code.barcodeType,
+            barcodeFormat = code.barcodeFormat
+        )
 
-        // Content
-        InfoSection(title = "Content") {
-            Text(
-                text = code.formattedContent,
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            )
-        }
+        // Customization - Redesigned
+        CustomizationSection(
+            size = code.size,
+            margin = code.margin,
+            foregroundColor = code.foregroundColor,
+            backgroundColor = code.backgroundColor,
+            errorCorrection = code.errorCorrection
+        )
 
-        // Note (if exists)
-        code.note?.let { note ->
-            InfoSection(title = "Note") {
-                Text(
-                    text = note,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                )
-            }
-        }
-
-        // Customization
-        InfoSection(title = "Customization") {
-            InfoRow(label = "Size", value = "${code.size}px")
-            InfoRow(label = "Margin", value = code.margin.toString())
-            code.errorCorrection?.let {
-                InfoRow(label = "Error Correction", value = it)
-            }
-        }
-
-        // Metadata
-        InfoSection(title = "Metadata") {
-            InfoRow(
-                label = "Created",
-                value = formatDate(code.createdAt)
-            )
-            InfoRow(
-                label = "Modified",
-                value = formatDate(code.updatedAt)
-            )
-            InfoRow(label = "Scan Count", value = code.scanCount.toString())
-        }
+        // Metadata - Redesigned
+        MetadataSection(
+            createdAt = code.createdAt,
+            updatedAt = code.updatedAt,
+            scanCount = code.scanCount
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@Composable
+private fun ContentSection(content: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Subject,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+                Text(
+                    text = "Content",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            Text(
+                text = content,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+@Composable
+private fun TemplateInfoSection(
+    templateName: String,
+    barcodeType: String,
+    barcodeFormat: String
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.QrCode2,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+                Text(
+                    text = "Template Information",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            DetailRow(label = "Template", value = templateName)
+            DetailRow(label = "Type", value = barcodeType)
+            DetailRow(label = "Format", value = barcodeFormat)
+        }
+    }
+}
+
+@Composable
+private fun NoteSection(note: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Note,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp)
+                )
+                Text(
+                    text = "Note",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            Text(
+                text = note,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun CustomizationSection(
+    size: Int,
+    margin: Int,
+    foregroundColor: Int,
+    backgroundColor: Int,
+    errorCorrection: String?
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Palette,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+                Text(
+                    text = "Customization",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            DetailRow(label = "Size", value = "${size}px")
+            DetailRow(label = "Margin", value = margin.toString())
+
+            // Color preview row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Colors",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Foreground color
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clip(CircleShape)
+                            .background(Color(foregroundColor))
+                            .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
+                    )
+                    Text(
+                        text = "•",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    // Background color
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clip(CircleShape)
+                            .background(Color(backgroundColor))
+                            .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
+                    )
+                }
+            }
+
+            errorCorrection?.let {
+                DetailRow(label = "Error Correction", value = it)
+            }
+        }
+    }
+}
+
+@Composable
+private fun MetadataSection(
+    createdAt: Long,
+    updatedAt: Long,
+    scanCount: Int
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+                Text(
+                    text = "Information",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            DetailRow(label = "Created", value = formatDate(createdAt))
+            DetailRow(label = "Modified", value = formatDate(updatedAt))
+            DetailRow(label = "Scan Count", value = scanCount.toString())
+        }
+    }
+}
+
+@Composable
+private fun DetailRow(
+    label: String,
+    value: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.End,
+            modifier = Modifier.weight(1f, fill = false)
+        )
     }
 }
 
@@ -593,7 +897,7 @@ private fun ShareOptionsBottomSheet(
                     Icon(Icons.Default.TextFields, contentDescription = null)
                 },
                 colors = ListItemDefaults.colors(
-                    containerColor = androidx.compose.ui.graphics.Color.Transparent
+                    containerColor = Color.Transparent
                 )
             )
         }
@@ -610,125 +914,21 @@ private fun ShareOptionsBottomSheet(
                     Icon(Icons.Default.QrCode2, contentDescription = null)
                 },
                 colors = ListItemDefaults.colors(
-                    containerColor = androidx.compose.ui.graphics.Color.Transparent
+                    containerColor = Color.Transparent
                 )
             )
         }
-    }
-}
-
-@Composable
-private fun CopyOptionsBottomSheet(
-    onCopyContent: () -> Unit,
-    onCopyQRCode: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .padding(bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Text(
-            text = "Copy",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-
-        Surface(
-            onClick = onCopyContent,
-            shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant
-        ) {
-            ListItem(
-                headlineContent = { Text("Copy Content") },
-                supportingContent = { Text("Copy the text content to clipboard") },
-                leadingContent = {
-                    Icon(Icons.Default.TextFields, contentDescription = null)
-                },
-                colors = ListItemDefaults.colors(
-                    containerColor = androidx.compose.ui.graphics.Color.Transparent
-                )
-            )
-        }
-
-        Surface(
-            onClick = onCopyQRCode,
-            shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant
-        ) {
-            ListItem(
-                headlineContent = { Text("Copy QR Code") },
-                supportingContent = { Text("Copy the QR code image") },
-                leadingContent = {
-                    Icon(Icons.Default.QrCode2, contentDescription = null)
-                },
-                colors = ListItemDefaults.colors(
-                    containerColor = androidx.compose.ui.graphics.Color.Transparent
-                )
-            )
-        }
-    }
-}
-
-@Composable
-private fun InfoSection(
-    title: String,
-    modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold
-        )
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-            )
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                content()
-            }
-        }
-    }
-}
-
-@Composable
-private fun InfoRow(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium
-        )
     }
 }
 
 private fun formatDate(timestamp: Long): String {
     val sdf = SimpleDateFormat("MMM dd, yyyy 'at' HH:mm", Locale.getDefault())
     return sdf.format(Date(timestamp))
+}
+
+private fun is2DBarcodeFormat(format: String): Boolean {
+    return when (format.uppercase()) {
+        "QR_CODE", "DATA_MATRIX", "AZTEC", "PDF_417", "MAXICODE" -> true
+        else -> false // CODE_128, EAN_13, EAN_8, UPC_A, UPC_E, CODE_39, CODE_93, CODABAR, ITF
+    }
 }

@@ -203,13 +203,6 @@ class CodeDetailViewModel(
         _state.update { it.copy(showShareBottomSheet = false) }
     }
 
-    fun showCopyBottomSheet() {
-        _state.update { it.copy(showCopyBottomSheet = true) }
-    }
-
-    fun hideCopyBottomSheet() {
-        _state.update { it.copy(showCopyBottomSheet = false) }
-    }
 
     suspend fun saveToGallery(): Boolean {
         val bitmap = _state.value.bitmap
@@ -285,67 +278,13 @@ class CodeDetailViewModel(
 
     fun copyContent() {
         val code = _state.value.code ?: return
-        _state.update { it.copy(isCopying = true) }
 
         val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
         val clip = android.content.ClipData.newPlainText("QR Code Content", code.formattedContent)
         clipboard.setPrimaryClip(clip)
 
         _state.update {
-            it.copy(
-                isCopying = false,
-                showCopyBottomSheet = false,
-                successMessage = "Content copied to clipboard"
-            )
-        }
-    }
-
-    suspend fun copyQRImage(): Boolean {
-        val bitmap = _state.value.bitmap
-
-        if (bitmap == null) {
-            _state.update { it.copy(errorMessage = "No image to copy") }
-            return false
-        }
-
-        _state.update { it.copy(isCopying = true, errorMessage = null) }
-
-        return withContext(Dispatchers.IO) {
-            try {
-                // Save to cache and copy URI to clipboard
-                val file = File(context.cacheDir, "qr_code_copy.png")
-                FileOutputStream(file).use { out ->
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
-                }
-
-                val uri = FileProvider.getUriForFile(
-                    context,
-                    "${context.packageName}.fileprovider",
-                    file
-                )
-
-                val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                val clip = android.content.ClipData.newUri(context.contentResolver, "QR Code", uri)
-                clipboard.setPrimaryClip(clip)
-
-                _state.update {
-                    it.copy(
-                        isCopying = false,
-                        showCopyBottomSheet = false,
-                        successMessage = "QR Code copied to clipboard"
-                    )
-                }
-                true
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to copy QR image")
-                _state.update {
-                    it.copy(
-                        isCopying = false,
-                        errorMessage = "Failed to copy image: ${e.message}"
-                    )
-                }
-                false
-            }
+            it.copy(successMessage = "Content copied to clipboard")
         }
     }
 
