@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,10 +23,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FlashlightOff
 import androidx.compose.material.icons.filled.FlashlightOn
 import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.material.icons.filled.VideocamOff
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -52,7 +56,8 @@ import com.rejown.qrcraft.presentation.scanner.components.PermissionRationaleShe
 import com.rejown.qrcraft.presentation.scanner.components.ScanOverlay
 import com.rejown.qrcraft.presentation.scanner.components.ScanResultBottomSheet
 import com.rejown.qrcraft.presentation.scanner.state.ScannerEvent
-import com.rejown.qrcraft.presentation.scanner.state.ScannerState
+import com.rejown.qrcraft.presentation.scanner.state.ScannerScreenState
+import com.rejown.qrcraft.presentation.scanner.state.ScanningState
 import com.rejown.qrcraft.utils.rememberHapticFeedback
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -126,14 +131,15 @@ fun ScannerScreen(
     }
 
     // Navigate to detail when scan is successful (only once per success)
-    LaunchedEffect(state) {
-        timber.log.Timber.tag("QRCraft ScannerScreen").e("LaunchedEffect - Triggered with state: ${state::class.simpleName}")
-        if (state is ScannerState.Success) {
-            timber.log.Timber.tag("QRCraft ScannerScreen").e("LaunchedEffect - Success state detected, navigating to detail. Result: ${(state as ScannerState.Success).result.displayValue}")
+    LaunchedEffect(state.scanningState) {
+        timber.log.Timber.tag("QRCraft ScannerScreen").e("LaunchedEffect - Triggered with state: ${state.scanningState::class.simpleName}")
+        if (state.scanningState is com.rejown.qrcraft.presentation.scanner.state.ScanningState.Success) {
+            val result = (state.scanningState as com.rejown.qrcraft.presentation.scanner.state.ScanningState.Success).result
+            timber.log.Timber.tag("QRCraft ScannerScreen").e("LaunchedEffect - Success state detected, navigating to detail. Result: ${result.displayValue}")
             haptic.success()
             onNavigateToDetail()
             timber.log.Timber.tag("QRCraft ScannerScreen").e("LaunchedEffect - Navigation to detail completed")
-        } else if (state is ScannerState.Error) {
+        } else if (state.scanningState is com.rejown.qrcraft.presentation.scanner.state.ScanningState.Error) {
             timber.log.Timber.tag("QRCraft ScannerScreen").e("LaunchedEffect - Error state detected")
             haptic.error()
         }
@@ -174,35 +180,79 @@ fun ScannerScreen(
                     )
                 }
 
-                state is ScannerState.Scanning -> {
+                !state.isPreviewActive -> {
+                    // Preview manually stopped - show start button
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.VideocamOff,
+                                contentDescription = "Camera Off",
+                                modifier = Modifier.padding(16.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "Camera Preview Paused",
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            Text(
+                                text = "Tap toggle to resume",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(bottom = 24.dp)
+                            )
+                            ExtendedFloatingActionButton(
+                                onClick = {
+                                    viewModel.onEvent(ScannerEvent.StartPreview)
+                                    haptic.mediumClick()
+                                },
+                                icon = {
+                                    Icon(Icons.Default.Videocam, "Start Preview")
+                                },
+                                text = { Text("Start Preview") }
+                            )
+                        }
+                    }
+                }
+
+                state.scanningState is com.rejown.qrcraft.presentation.scanner.state.ScanningState.Scanning -> {
                     // Camera preview with overlay
                     CameraPreview(
                         onBarcodeDetected = { result ->
                             viewModel.onEvent(ScannerEvent.OnBarcodeDetected(result))
                         },
-                        isFlashlightOn = isFlashlightOn
+                        isFlashlightOn = isFlashlightOn,
+                        isPreviewActive = state.isPreviewActive
                     )
                     ScanOverlay()
                 }
 
-                state is ScannerState.Success -> {
+                state.scanningState is com.rejown.qrcraft.presentation.scanner.state.ScanningState.Success -> {
                     // Show camera preview even when Success (when navigating back from detail)
                     // This prevents white flash/blank screen
                     CameraPreview(
                         onBarcodeDetected = { result ->
                             viewModel.onEvent(ScannerEvent.OnBarcodeDetected(result))
                         },
-                        isFlashlightOn = isFlashlightOn
+                        isFlashlightOn = isFlashlightOn,
+                        isPreviewActive = state.isPreviewActive
                     )
                     ScanOverlay()
                 }
 
-                state is ScannerState.Error -> {
+                state.scanningState is com.rejown.qrcraft.presentation.scanner.state.ScanningState.Error -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Error: ${(state as ScannerState.Error).message}")
+                        val errorMessage = (state.scanningState as com.rejown.qrcraft.presentation.scanner.state.ScanningState.Error).message
+                        Text("Error: $errorMessage")
                     }
                 }
 
@@ -212,15 +262,16 @@ fun ScannerScreen(
                         onBarcodeDetected = { result ->
                             viewModel.onEvent(ScannerEvent.OnBarcodeDetected(result))
                         },
-                        isFlashlightOn = isFlashlightOn
+                        isFlashlightOn = isFlashlightOn,
+                        isPreviewActive = state.isPreviewActive
                     )
                     ScanOverlay()
                 }
             }
 
             // Show bottom sheet with scan result
-            if (showBottomSheet && state is ScannerState.Success) {
-                val result = (state as ScannerState.Success).result
+            if (showBottomSheet && state.scanningState is com.rejown.qrcraft.presentation.scanner.state.ScanningState.Success) {
+                val result = (state.scanningState as com.rejown.qrcraft.presentation.scanner.state.ScanningState.Success).result
 
                 ScanResultBottomSheet(
                     scanResult = result,
@@ -267,8 +318,38 @@ fun ScannerScreen(
             }
         }
 
-        // Action buttons (Gallery + Flashlight)
+        // Action buttons (Gallery + Flashlight + Preview Toggle)
         if (cameraPermissionState.status.isGranted) {
+            // Preview Toggle button - Top right
+            SmallFloatingActionButton(
+                onClick = {
+                    viewModel.onEvent(ScannerEvent.TogglePreview)
+                    haptic.mediumClick()
+                },
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp),
+                containerColor = if (state.isPreviewActive) {
+                    MaterialTheme.colorScheme.primaryContainer
+                } else {
+                    MaterialTheme.colorScheme.errorContainer
+                }
+            ) {
+                Icon(
+                    imageVector = if (state.isPreviewActive) {
+                        Icons.Default.Videocam
+                    } else {
+                        Icons.Default.VideocamOff
+                    },
+                    contentDescription = if (state.isPreviewActive) "Pause camera preview" else "Resume camera preview",
+                    tint = if (state.isPreviewActive) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onErrorContainer
+                    }
+                )
+            }
+
             // Gallery button - Left bottom
             androidx.compose.material3.IconButton(
                 onClick = {

@@ -23,6 +23,7 @@ import java.util.concurrent.Executors
 fun CameraPreview(
     onBarcodeDetected: (ScanResult) -> Unit,
     isFlashlightOn: Boolean = false,
+    isPreviewActive: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -37,20 +38,29 @@ fun CameraPreview(
         }
     }
 
-    AndroidView(
-        factory = { previewView },
-        modifier = modifier.fillMaxSize(),
-        update = {
-            startCamera(
-                context = context,
-                previewView = previewView,
-                lifecycleOwner = lifecycleOwner,
-                cameraExecutor = cameraExecutor,
-                onBarcodeDetected = onBarcodeDetected,
-                isFlashlightOn = isFlashlightOn
-            )
+    // Only show camera preview when active
+    if (isPreviewActive) {
+        AndroidView(
+            factory = { previewView },
+            modifier = modifier.fillMaxSize(),
+            update = {
+                startCamera(
+                    context = context,
+                    previewView = previewView,
+                    lifecycleOwner = lifecycleOwner,
+                    cameraExecutor = cameraExecutor,
+                    onBarcodeDetected = onBarcodeDetected,
+                    isFlashlightOn = isFlashlightOn
+                )
+            }
+        )
+    } else {
+        // Stop camera when preview is inactive
+        DisposableEffect(Unit) {
+            stopCamera(context)
+            onDispose { }
         }
-    )
+    }
 }
 
 private fun startCamera(
@@ -102,6 +112,21 @@ private fun startCamera(
             Timber.d("Camera started successfully, flashlight: $isFlashlightOn")
         } catch (e: Exception) {
             Timber.e(e, "Failed to start camera")
+        }
+    }, ContextCompat.getMainExecutor(context))
+}
+
+private fun stopCamera(context: Context) {
+    val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+
+    cameraProviderFuture.addListener({
+        try {
+            val cameraProvider = cameraProviderFuture.get()
+            // Unbind all use cases to release camera resources
+            cameraProvider.unbindAll()
+            Timber.d("Camera stopped and resources released")
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to stop camera")
         }
     }, ContextCompat.getMainExecutor(context))
 }

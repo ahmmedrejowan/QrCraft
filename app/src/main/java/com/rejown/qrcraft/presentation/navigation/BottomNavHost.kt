@@ -46,8 +46,8 @@ fun BottomNavHost(
 
                     // Get the scan result from the ViewModel state
                     val currentState = scannerViewModel.state.value
-                    if (currentState is com.rejown.qrcraft.presentation.scanner.state.ScannerState.Success) {
-                        val result = currentState.result
+                    if (currentState.scanningState is com.rejown.qrcraft.presentation.scanner.state.ScanningState.Success) {
+                        val result = (currentState.scanningState as com.rejown.qrcraft.presentation.scanner.state.ScanningState.Success).result
                         Timber.tag("QRCraft BottomNavHost").e("onNavigateToDetail - Navigating with data: ${result.displayValue}")
 
                         parentNavController.navigate(
