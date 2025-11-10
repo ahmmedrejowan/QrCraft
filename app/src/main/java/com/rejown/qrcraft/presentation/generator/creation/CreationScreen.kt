@@ -1,15 +1,20 @@
 package com.rejown.qrcraft.presentation.generator.creation
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import android.content.Intent
@@ -235,6 +240,16 @@ private fun CreationContent(
             selectedFormat = state.selectedFormat
         )
 
+        // Capacity Indicator
+        if (state.maxCapacity > 0) {
+            CapacityIndicator(
+                currentLength = state.contentLength,
+                maxCapacity = state.maxCapacity,
+                percentage = state.capacityPercentage,
+                warning = state.capacityWarning
+            )
+        }
+
         // Format Selection Row
         FormatSelectionRow(
             format = state.selectedFormat?.name ?: "Not selected",
@@ -374,6 +389,105 @@ private fun CustomizationRow(
 
         TextButton(onClick = onClick) {
             Text("Edit")
+        }
+    }
+}
+
+@Composable
+private fun CapacityIndicator(
+    currentLength: Int,
+    maxCapacity: Int,
+    percentage: Float,
+    warning: String?,
+    modifier: Modifier = Modifier
+) {
+    val color = when {
+        warning != null && percentage >= 100f -> MaterialTheme.colorScheme.error
+        percentage >= 90f -> MaterialTheme.colorScheme.error
+        percentage >= 75f -> Color(0xFFFF9800) // Orange warning
+        else -> MaterialTheme.colorScheme.primary
+    }
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = if (warning != null && percentage >= 90f) {
+                MaterialTheme.colorScheme.errorContainer
+            } else {
+                MaterialTheme.colorScheme.surfaceVariant
+            }
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp)
+        ) {
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Content Capacity",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "$currentLength / $maxCapacity",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = color,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Progress bar
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(3.dp)
+                    )
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(fraction = (percentage / 100f).coerceIn(0f, 1f))
+                        .fillMaxHeight()
+                        .background(
+                            color = color,
+                            shape = RoundedCornerShape(3.dp)
+                        )
+                )
+            }
+
+            // Warning message
+            if (warning != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(
+                        imageVector = if (percentage >= 100f) {
+                            Icons.Default.Error
+                        } else {
+                            Icons.Default.Warning
+                        },
+                        contentDescription = null,
+                        tint = color,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Text(
+                        text = warning,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = color,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
         }
     }
 }

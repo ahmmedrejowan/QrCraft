@@ -25,7 +25,12 @@ data class CreationState(
     val errorMessage: String? = null,
     val showExitDialog: Boolean = false,
     val editingCodeId: Long? = null, // For edit mode
-    val isEditMode: Boolean = false
+    val isEditMode: Boolean = false,
+    // Capacity tracking
+    val contentLength: Int = 0,
+    val maxCapacity: Int = 0,
+    val capacityWarning: String? = null,
+    val capacityPercentage: Float = 0f
 ) {
     fun hasUnsavedChanges(): Boolean {
         return fieldValues.values.any { it.isNotBlank() } ||

@@ -248,6 +248,64 @@ class CreationViewModel(
             _state.update {
                 it.copy(
                     generatedBitmap = null,
+                    isGenerating = false,
+                    contentLength = 0,
+                    maxCapacity = 0,
+                    capacityWarning = null,
+                    capacityPercentage = 0f
+                )
+            }
+            return
+        }
+
+        // Calculate capacity
+        val maxCapacity = com.rejown.qrcraft.utils.QRCapacityCalculator.getMaxCapacity(
+            format = format,
+            errorCorrection = currentState.customization.errorCorrectionLevel,
+            content = content
+        )
+        val capacityPercentage = com.rejown.qrcraft.utils.QRCapacityCalculator.getCapacityPercentage(
+            content = content,
+            format = format,
+            errorCorrection = currentState.customization.errorCorrectionLevel
+        )
+
+        // Check capacity
+        val isWithinCapacity = com.rejown.qrcraft.utils.QRCapacityCalculator.isWithinCapacity(
+            content = content,
+            format = format,
+            errorCorrection = currentState.customization.errorCorrectionLevel
+        )
+
+        // Check format-specific validation
+        val formatError = com.rejown.qrcraft.utils.QRCapacityCalculator.validateFormatSpecificContent(
+            content = content,
+            format = format
+        )
+
+        // Generate capacity warning
+        val capacityWarning = when {
+            formatError != null -> formatError
+            !isWithinCapacity -> "Content exceeds ${format.displayName} capacity limit"
+            capacityPercentage > 90f -> "Warning: Near capacity limit (${capacityPercentage.toInt()}%)"
+            else -> null
+        }
+
+        // Update state with capacity info
+        _state.update {
+            it.copy(
+                contentLength = content.length,
+                maxCapacity = maxCapacity,
+                capacityPercentage = capacityPercentage,
+                capacityWarning = capacityWarning
+            )
+        }
+
+        // Don't generate if there's a capacity error
+        if (formatError != null || !isWithinCapacity) {
+            _state.update {
+                it.copy(
+                    generatedBitmap = null,
                     isGenerating = false
                 )
             }
