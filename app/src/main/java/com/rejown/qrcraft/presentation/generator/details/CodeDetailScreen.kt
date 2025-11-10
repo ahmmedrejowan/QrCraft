@@ -1,6 +1,12 @@
 package com.rejown.qrcraft.presentation.generator.details
 
 import android.content.Intent
+import android.net.Uri
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -18,6 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.rejown.qrcraft.utils.rememberHapticFeedback
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -34,6 +41,7 @@ fun CodeDetailScreen(
     val context = androidx.compose.ui.platform.LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val haptic = rememberHapticFeedback()
 
     // Load code on first composition
     LaunchedEffect(codeId) {
@@ -73,6 +81,7 @@ fun CodeDetailScreen(
                                 onBack()
                             }
                         }
+                        haptic.strongImpact()
                     }
                 ) {
                     Text("Delete", color = MaterialTheme.colorScheme.error)
@@ -84,6 +93,66 @@ fun CodeDetailScreen(
                 }
             }
         )
+    }
+
+    // Share bottom sheet
+    if (state.showShareBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = viewModel::hideShareBottomSheet,
+            sheetState = rememberModalBottomSheetState()
+        ) {
+            ShareOptionsBottomSheet(
+                onShareContent = {
+                    scope.launch {
+                        val code = state.code ?: return@launch
+                        val intent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, code.formattedContent)
+                        }
+                        context.startActivity(Intent.createChooser(intent, "Share Content"))
+                        viewModel.hideShareBottomSheet()
+                        haptic.lightClick()
+                    }
+                },
+                onShareQRCode = {
+                    scope.launch {
+                        val uri = viewModel.shareQRImage()
+                        if (uri != null) {
+                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                type = "image/png"
+                                putExtra(Intent.EXTRA_STREAM, uri)
+                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            }
+                            context.startActivity(
+                                Intent.createChooser(shareIntent, "Share QR Code")
+                            )
+                        }
+                        haptic.lightClick()
+                    }
+                }
+            )
+        }
+    }
+
+    // Copy bottom sheet
+    if (state.showCopyBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = viewModel::hideCopyBottomSheet,
+            sheetState = rememberModalBottomSheetState()
+        ) {
+            CopyOptionsBottomSheet(
+                onCopyContent = {
+                    viewModel.copyContent()
+                    haptic.lightClick()
+                },
+                onCopyQRCode = {
+                    scope.launch {
+                        viewModel.copyQRImage()
+                        haptic.lightClick()
+                    }
+                }
+            )
+        }
     }
 
     Scaffold(
@@ -106,28 +175,34 @@ fun CodeDetailScreen(
                 },
                 actions = {
                     IconButton(
-                        onClick = viewModel::toggleFavorite,
+                        onClick = {
+                            viewModel.toggleFavorite()
+                            haptic.lightClick()
+                        },
                         enabled = state.code != null
                     ) {
-                        Icon(
-                            imageVector = if (state.code?.isFavorite == true) {
-                                Icons.Default.Favorite
-                            } else {
-                                Icons.Default.FavoriteBorder
-                            },
-                            contentDescription = "Toggle favorite",
-                            tint = if (state.code?.isFavorite == true) {
-                                MaterialTheme.colorScheme.error
-                            } else {
-                                MaterialTheme.colorScheme.onSurface
-                            }
-                        )
-                    }
-                    IconButton(onClick = viewModel::showDeleteDialog) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete"
-                        )
+                        AnimatedVisibility(
+                            visible = state.code?.isFavorite == true,
+                            enter = scaleIn(spring(stiffness = Spring.StiffnessHigh)),
+                            exit = scaleOut()
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Favorite,
+                                contentDescription = "Favorited",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                        AnimatedVisibility(
+                            visible = state.code?.isFavorite == false,
+                            enter = scaleIn(spring(stiffness = Spring.StiffnessHigh)),
+                            exit = scaleOut()
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.FavoriteBorder,
+                                contentDescription = "Not favorited",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -181,23 +256,63 @@ fun CodeDetailScreen(
                 state.code?.let { code ->
                     CodeDetailContent(
                         state = state,
+                        onCopy = {
+                            viewModel.showCopyBottomSheet()
+                            haptic.lightClick()
+                        },
                         onShare = {
+                            viewModel.showShareBottomSheet()
+                            haptic.lightClick()
+                        },
+                        onSave = {
                             scope.launch {
-                                val uri = viewModel.getShareUri()
-                                if (uri != null) {
-                                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                        type = "image/png"
-                                        putExtra(Intent.EXTRA_STREAM, uri)
-                                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                viewModel.saveToGallery()
+                                haptic.success()
+                            }
+                        },
+                        onOpen = {
+                            // Smart action based on content type
+                            val content = code.formattedContent
+                            try {
+                                when {
+                                    content.startsWith("http://") || content.startsWith("https://") -> {
+                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(content))
+                                        context.startActivity(intent)
                                     }
-                                    context.startActivity(
-                                        Intent.createChooser(shareIntent, "Share QR Code")
-                                    )
+                                    content.startsWith("mailto:") -> {
+                                        val intent = Intent(Intent.ACTION_SENDTO, Uri.parse(content))
+                                        context.startActivity(intent)
+                                    }
+                                    content.startsWith("tel:") -> {
+                                        val intent = Intent(Intent.ACTION_DIAL, Uri.parse(content))
+                                        context.startActivity(intent)
+                                    }
+                                    content.startsWith("sms:") -> {
+                                        val intent = Intent(Intent.ACTION_SENDTO, Uri.parse(content))
+                                        context.startActivity(intent)
+                                    }
+                                    else -> {
+                                        // Try as URL
+                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://$content"))
+                                        context.startActivity(intent)
+                                    }
+                                }
+                                haptic.lightClick()
+                            } catch (e: Exception) {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("Unable to open content")
                                 }
                             }
                         },
                         onEdit = onEdit?.let { editFn ->
-                            { editFn(code.templateId) }
+                            {
+                                editFn(code.templateId)
+                                haptic.lightClick()
+                            }
+                        },
+                        onDelete = {
+                            viewModel.showDeleteDialog()
+                            haptic.lightClick()
                         },
                         modifier = Modifier.padding(paddingValues)
                     )
@@ -210,8 +325,12 @@ fun CodeDetailScreen(
 @Composable
 private fun CodeDetailContent(
     state: CodeDetailState,
+    onCopy: () -> Unit,
     onShare: () -> Unit,
+    onSave: () -> Unit,
+    onOpen: (() -> Unit)?,
     onEdit: (() -> Unit)?,
+    onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val code = state.code ?: return
@@ -254,46 +373,132 @@ private fun CodeDetailContent(
             }
         }
 
-        // Action Buttons
+        // Action Buttons - Row 1
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Button(
-                onClick = onShare,
+            // Copy
+            OutlinedButton(
+                onClick = onCopy,
                 modifier = Modifier.weight(1f),
-                enabled = !state.isSharing
+                enabled = !state.isCopying
             ) {
-                if (state.isSharing) {
+                if (state.isCopying) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        color = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(18.dp),
                         strokeWidth = 2.dp
                     )
                 } else {
                     Icon(
-                        imageVector = Icons.Default.Share,
+                        imageVector = Icons.Default.ContentCopy,
                         contentDescription = null,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(18.dp)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Share")
+                }
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("Copy")
+            }
+
+            // Share
+            OutlinedButton(
+                onClick = onShare,
+                modifier = Modifier.weight(1f)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Share,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("Share")
+            }
+
+            // Save
+            OutlinedButton(
+                onClick = onSave,
+                modifier = Modifier.weight(1f),
+                enabled = !state.isSavingToGallery
+            ) {
+                if (state.isSavingToGallery) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Download,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("Save")
+            }
+        }
+
+        // Action Buttons - Row 2
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Open/Action button (smart based on content type)
+            if (onOpen != null) {
+                val content = code.formattedContent
+                val (actionIcon, actionText) = when {
+                    content.startsWith("http://") || content.startsWith("https://") ->
+                        Icons.Default.OpenInBrowser to "Open"
+                    content.startsWith("mailto:") -> Icons.Default.Email to "Email"
+                    content.startsWith("tel:") -> Icons.Default.Phone to "Call"
+                    content.startsWith("sms:") -> Icons.Default.Message to "Message"
+                    else -> Icons.Default.OpenInNew to "Open"
+                }
+
+                FilledTonalButton(
+                    onClick = onOpen,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        imageVector = actionIcon,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(actionText)
                 }
             }
 
+            // Edit
             if (onEdit != null) {
-                OutlinedButton(
+                FilledTonalButton(
                     onClick = onEdit,
                     modifier = Modifier.weight(1f)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
                         contentDescription = null,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(18.dp)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text("Edit")
                 }
+            }
+
+            // Delete
+            OutlinedButton(
+                onClick = onDelete,
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("Delete")
             }
         }
 
@@ -354,6 +559,116 @@ private fun CodeDetailContent(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@Composable
+private fun ShareOptionsBottomSheet(
+    onShareContent: () -> Unit,
+    onShareQRCode: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .padding(bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = "Share",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Surface(
+            onClick = onShareContent,
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant
+        ) {
+            ListItem(
+                headlineContent = { Text("Share Content") },
+                supportingContent = { Text("Share the text content only") },
+                leadingContent = {
+                    Icon(Icons.Default.TextFields, contentDescription = null)
+                },
+                colors = ListItemDefaults.colors(
+                    containerColor = androidx.compose.ui.graphics.Color.Transparent
+                )
+            )
+        }
+
+        Surface(
+            onClick = onShareQRCode,
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant
+        ) {
+            ListItem(
+                headlineContent = { Text("Share QR Code") },
+                supportingContent = { Text("Share the QR code image") },
+                leadingContent = {
+                    Icon(Icons.Default.QrCode2, contentDescription = null)
+                },
+                colors = ListItemDefaults.colors(
+                    containerColor = androidx.compose.ui.graphics.Color.Transparent
+                )
+            )
+        }
+    }
+}
+
+@Composable
+private fun CopyOptionsBottomSheet(
+    onCopyContent: () -> Unit,
+    onCopyQRCode: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .padding(bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = "Copy",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Surface(
+            onClick = onCopyContent,
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant
+        ) {
+            ListItem(
+                headlineContent = { Text("Copy Content") },
+                supportingContent = { Text("Copy the text content to clipboard") },
+                leadingContent = {
+                    Icon(Icons.Default.TextFields, contentDescription = null)
+                },
+                colors = ListItemDefaults.colors(
+                    containerColor = androidx.compose.ui.graphics.Color.Transparent
+                )
+            )
+        }
+
+        Surface(
+            onClick = onCopyQRCode,
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant
+        ) {
+            ListItem(
+                headlineContent = { Text("Copy QR Code") },
+                supportingContent = { Text("Copy the QR code image") },
+                leadingContent = {
+                    Icon(Icons.Default.QrCode2, contentDescription = null)
+                },
+                colors = ListItemDefaults.colors(
+                    containerColor = androidx.compose.ui.graphics.Color.Transparent
+                )
+            )
+        }
     }
 }
 

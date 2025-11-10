@@ -9,8 +9,11 @@ data class CodeDetailState(
     val isLoading: Boolean = true,
     val error: String? = null,
     val isDeleting: Boolean = false,
-    val isSharing: Boolean = false,
+    val isSavingToGallery: Boolean = false,
+    val isCopying: Boolean = false,
     val showDeleteDialog: Boolean = false,
+    val showShareBottomSheet: Boolean = false,
+    val showCopyBottomSheet: Boolean = false,
     val successMessage: String? = null,
     val errorMessage: String? = null
 )

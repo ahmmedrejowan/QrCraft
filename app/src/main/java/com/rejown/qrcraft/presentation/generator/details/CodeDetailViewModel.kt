@@ -158,8 +158,6 @@ class CodeDetailViewModel(
             return null
         }
 
-        _state.update { it.copy(isSharing = true, errorMessage = null) }
-
         return withContext(Dispatchers.IO) {
             try {
                 // Create temp file for sharing
@@ -179,14 +177,12 @@ class CodeDetailViewModel(
                     "${context.packageName}.fileprovider",
                     file
                 )
-                _state.update { it.copy(isSharing = false) }
                 Timber.d("Share URI created successfully")
                 uri
             } catch (e: Exception) {
                 Timber.e(e, "Failed to create share URI")
                 _state.update {
                     it.copy(
-                        isSharing = false,
                         errorMessage = "Failed to share: ${e.message ?: "Unknown error"}"
                     )
                 }
@@ -197,5 +193,169 @@ class CodeDetailViewModel(
 
     fun clearMessages() {
         _state.update { it.copy(successMessage = null, errorMessage = null) }
+    }
+
+    fun showShareBottomSheet() {
+        _state.update { it.copy(showShareBottomSheet = true) }
+    }
+
+    fun hideShareBottomSheet() {
+        _state.update { it.copy(showShareBottomSheet = false) }
+    }
+
+    fun showCopyBottomSheet() {
+        _state.update { it.copy(showCopyBottomSheet = true) }
+    }
+
+    fun hideCopyBottomSheet() {
+        _state.update { it.copy(showCopyBottomSheet = false) }
+    }
+
+    suspend fun saveToGallery(): Boolean {
+        val bitmap = _state.value.bitmap
+        val code = _state.value.code
+
+        if (bitmap == null || code == null) {
+            _state.update { it.copy(errorMessage = "No image to save") }
+            return false
+        }
+
+        _state.update { it.copy(isSavingToGallery = true, errorMessage = null) }
+
+        return withContext(Dispatchers.IO) {
+            try {
+                val filename = "QRCraft_${code.title ?: "QRCode"}_${System.currentTimeMillis()}.png"
+
+                // For Android 10+ use MediaStore
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                    val contentValues = android.content.ContentValues().apply {
+                        put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                        put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "image/png")
+                        put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_PICTURES + "/QRCraft")
+                    }
+
+                    val uri = context.contentResolver.insert(
+                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        contentValues
+                    )
+
+                    uri?.let { imageUri ->
+                        context.contentResolver.openOutputStream(imageUri)?.use { outputStream ->
+                            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+                        }
+                        _state.update {
+                            it.copy(
+                                isSavingToGallery = false,
+                                successMessage = "Saved to gallery"
+                            )
+                        }
+                        Timber.d("Image saved to gallery successfully")
+                        true
+                    } ?: run {
+                        _state.update {
+                            it.copy(
+                                isSavingToGallery = false,
+                                errorMessage = "Failed to save image"
+                            )
+                        }
+                        false
+                    }
+                } else {
+                    // For older Android versions
+                    _state.update {
+                        it.copy(
+                            isSavingToGallery = false,
+                            errorMessage = "Saving to gallery requires Android 10 or higher"
+                        )
+                    }
+                    false
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to save image to gallery")
+                _state.update {
+                    it.copy(
+                        isSavingToGallery = false,
+                        errorMessage = "Failed to save: ${e.message}"
+                    )
+                }
+                false
+            }
+        }
+    }
+
+    fun copyContent() {
+        val code = _state.value.code ?: return
+        _state.update { it.copy(isCopying = true) }
+
+        val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        val clip = android.content.ClipData.newPlainText("QR Code Content", code.formattedContent)
+        clipboard.setPrimaryClip(clip)
+
+        _state.update {
+            it.copy(
+                isCopying = false,
+                showCopyBottomSheet = false,
+                successMessage = "Content copied to clipboard"
+            )
+        }
+    }
+
+    suspend fun copyQRImage(): Boolean {
+        val bitmap = _state.value.bitmap
+
+        if (bitmap == null) {
+            _state.update { it.copy(errorMessage = "No image to copy") }
+            return false
+        }
+
+        _state.update { it.copy(isCopying = true, errorMessage = null) }
+
+        return withContext(Dispatchers.IO) {
+            try {
+                // Save to cache and copy URI to clipboard
+                val file = File(context.cacheDir, "qr_code_copy.png")
+                FileOutputStream(file).use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                }
+
+                val uri = FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.fileprovider",
+                    file
+                )
+
+                val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val clip = android.content.ClipData.newUri(context.contentResolver, "QR Code", uri)
+                clipboard.setPrimaryClip(clip)
+
+                _state.update {
+                    it.copy(
+                        isCopying = false,
+                        showCopyBottomSheet = false,
+                        successMessage = "QR Code copied to clipboard"
+                    )
+                }
+                true
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to copy QR image")
+                _state.update {
+                    it.copy(
+                        isCopying = false,
+                        errorMessage = "Failed to copy image: ${e.message}"
+                    )
+                }
+                false
+            }
+        }
+    }
+
+    suspend fun shareContent() {
+        val code = _state.value.code ?: return
+        _state.update { it.copy(showShareBottomSheet = false) }
+    }
+
+    suspend fun shareQRImage(): Uri? {
+        _state.update { it.copy(showShareBottomSheet = false) }
+        return getShareUri()
     }
 }
