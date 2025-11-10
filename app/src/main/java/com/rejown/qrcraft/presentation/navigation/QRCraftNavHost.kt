@@ -49,9 +49,13 @@ fun QRCraftNavHost(
             val creation = backStackEntry.toRoute<Screen.Creation>()
             CreationScreen(
                 templateId = creation.templateId,
+                codeId = creation.codeId, // For edit mode
                 onSaved = { codeId ->
                     navController.navigate(Screen.CodeDetails(codeId)) {
-                        popUpTo<Screen.Generator> { inclusive = false }
+                        // Pop back to the previous screen (either Generator or CodeDetails)
+                        popUpTo(navController.previousBackStackEntry?.destination?.route ?: Screen.Generator::class.qualifiedName!!) {
+                            inclusive = false
+                        }
                     }
                 },
                 onBackPressed = {
@@ -65,8 +69,11 @@ fun QRCraftNavHost(
             CodeDetailScreen(
                 codeId = codeDetails.codeId,
                 onEdit = { templateId ->
-                    // TODO: Implement edit functionality
-                    // Would need to load existing data into creation screen
+                    // Navigate to creation screen in edit mode
+                    navController.navigate(Screen.Creation(
+                        templateId = templateId,
+                        codeId = codeDetails.codeId
+                    ))
                 },
                 onBack = {
                     navController.popBackStack()

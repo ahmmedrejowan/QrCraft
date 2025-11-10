@@ -23,7 +23,9 @@ data class CreationState(
     val isLoading: Boolean = true,
     val successMessage: String? = null,
     val errorMessage: String? = null,
-    val showExitDialog: Boolean = false
+    val showExitDialog: Boolean = false,
+    val editingCodeId: Long? = null, // For edit mode
+    val isEditMode: Boolean = false
 ) {
     fun hasUnsavedChanges(): Boolean {
         return fieldValues.values.any { it.isNotBlank() } ||

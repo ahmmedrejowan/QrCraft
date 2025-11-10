@@ -27,7 +27,8 @@ sealed class Screen {
     // Generator flow screens
     @Serializable
     data class Creation(
-        val templateId: String
+        val templateId: String,
+        val codeId: Long? = null // For edit mode
     ) : Screen()
 
     @Serializable

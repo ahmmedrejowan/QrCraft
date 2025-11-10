@@ -23,6 +23,7 @@ import com.rejown.qrcraft.presentation.generator.creation.components.FormatSelec
 @Composable
 fun CreationScreen(
     templateId: String,
+    codeId: Long? = null, // For edit mode
     onSaved: (Long) -> Unit,
     onBackPressed: () -> Unit,
     viewModel: CreationViewModel = org.koin.androidx.compose.koinViewModel()
@@ -32,9 +33,13 @@ fun CreationScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Load template on first composition
-    LaunchedEffect(templateId) {
-        viewModel.loadTemplate(templateId)
+    // Load template or existing code on first composition
+    LaunchedEffect(templateId, codeId) {
+        if (codeId != null) {
+            viewModel.loadExistingCode(codeId)
+        } else {
+            viewModel.loadTemplate(templateId)
+        }
     }
 
     // Show snackbar for success/error messages

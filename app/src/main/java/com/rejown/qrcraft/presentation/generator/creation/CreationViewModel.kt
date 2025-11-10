@@ -61,6 +61,92 @@ class CreationViewModel(
         }
     }
 
+    fun loadExistingCode(codeId: Long) {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
+
+            try {
+                val code = generatorRepository.getGeneratedById(codeId)
+                if (code != null) {
+                    // Load the template
+                    val template = TemplateRepository.getTemplateById(code.templateId)
+                    if (template != null) {
+                        // Parse the contentFields JSON to get field values
+                        val fieldValues = try {
+                            Json.decodeFromString<Map<String, String>>(code.contentFields)
+                        } catch (e: Exception) {
+                            Timber.e(e, "Failed to parse contentFields")
+                            emptyMap()
+                        }
+
+                        // Parse the barcode format
+                        val barcodeFormat = try {
+                            BarcodeFormat.valueOf(code.barcodeFormat)
+                        } catch (e: Exception) {
+                            template.defaultFormat
+                        }
+
+                        // Parse error correction level
+                        val errorCorrectionLevel = try {
+                            code.errorCorrection?.let { com.rejown.qrcraft.domain.models.ErrorCorrectionLevel.valueOf(it) }
+                                ?: com.rejown.qrcraft.domain.models.ErrorCorrectionLevel.MEDIUM
+                        } catch (e: Exception) {
+                            com.rejown.qrcraft.domain.models.ErrorCorrectionLevel.MEDIUM
+                        }
+
+                        // Create customization from stored values
+                        val customization = CodeCustomization(
+                            foregroundColor = code.foregroundColor,
+                            backgroundColor = code.backgroundColor,
+                            size = code.size,
+                            errorCorrectionLevel = errorCorrectionLevel,
+                            margin = code.margin
+                        )
+
+                        _state.update {
+                            it.copy(
+                                template = template,
+                                fieldValues = fieldValues,
+                                title = code.title ?: "",
+                                note = code.note ?: "",
+                                selectedFormat = barcodeFormat,
+                                customization = customization,
+                                isLoading = false,
+                                editingCodeId = codeId,
+                                isEditMode = true
+                            )
+                        }
+
+                        // Generate the code preview
+                        generateCode()
+                    } else {
+                        _state.update {
+                            it.copy(
+                                error = "Template not found",
+                                isLoading = false
+                            )
+                        }
+                    }
+                } else {
+                    _state.update {
+                        it.copy(
+                            error = "Code not found",
+                            isLoading = false
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to load existing code")
+                _state.update {
+                    it.copy(
+                        error = "Failed to load code: ${e.message}",
+                        isLoading = false
+                    )
+                }
+            }
+        }
+    }
+
     fun updateFieldValue(key: String, value: String) {
         _state.update {
             it.copy(
@@ -248,11 +334,26 @@ class CreationViewModel(
 
         return withContext(Dispatchers.IO) {
             try {
-                // Save bitmap to internal storage
                 val timestamp = System.currentTimeMillis()
-                val fileName = "qrcode_${timestamp}.png"
-                val file = File(context.filesDir, fileName)
 
+                // Determine if we're updating or creating
+                val isEditMode = currentState.isEditMode && currentState.editingCodeId != null
+
+                // For edit mode, get the existing entity to preserve some fields
+                val existingCode = if (isEditMode) {
+                    generatorRepository.getGeneratedById(currentState.editingCodeId!!)
+                } else null
+
+                // Save bitmap to internal storage (use existing filename if editing)
+                val fileName = if (isEditMode && existingCode != null) {
+                    // Update existing file
+                    existingCode.imagePath
+                } else {
+                    // Create new file
+                    "qrcode_${timestamp}.png"
+                }
+
+                val file = File(context.filesDir, fileName)
                 FileOutputStream(file).use { out ->
                     bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
                 }
@@ -263,39 +364,70 @@ class CreationViewModel(
                 // Convert field values to JSON
                 val contentFieldsJson = Json.encodeToString(currentState.fieldValues)
 
-                // Create entity
-                val entity = GeneratedCodeEntity(
-                    templateId = template.id,
-                    templateName = template.name,
-                    barcodeFormat = format.name,
-                    barcodeType = format.type.name,
-                    title = currentState.title.takeIf { it.isNotBlank() },
-                    note = currentState.note.takeIf { it.isNotBlank() },
-                    contentFields = contentFieldsJson,
-                    formattedContent = formattedContent,
-                    foregroundColor = currentState.customization.foregroundColor,
-                    backgroundColor = currentState.customization.backgroundColor,
-                    size = currentState.customization.size,
-                    errorCorrection = currentState.customization.errorCorrectionLevel.name,
-                    margin = currentState.customization.margin,
-                    imagePath = fileName,
-                    imageWidth = bitmap.width,
-                    imageHeight = bitmap.height,
-                    createdAt = timestamp,
-                    updatedAt = timestamp,
-                    isFavorite = false,
-                    scanCount = 0
-                )
+                // Create or update entity
+                val entity = if (isEditMode && existingCode != null) {
+                    // Update existing entity
+                    existingCode.copy(
+                        templateId = template.id,
+                        templateName = template.name,
+                        barcodeFormat = format.name,
+                        barcodeType = format.type.name,
+                        title = currentState.title.takeIf { it.isNotBlank() },
+                        note = currentState.note.takeIf { it.isNotBlank() },
+                        contentFields = contentFieldsJson,
+                        formattedContent = formattedContent,
+                        foregroundColor = currentState.customization.foregroundColor,
+                        backgroundColor = currentState.customization.backgroundColor,
+                        size = currentState.customization.size,
+                        errorCorrection = currentState.customization.errorCorrectionLevel.name,
+                        margin = currentState.customization.margin,
+                        imagePath = fileName,
+                        imageWidth = bitmap.width,
+                        imageHeight = bitmap.height,
+                        updatedAt = timestamp
+                        // Preserve: createdAt, isFavorite, scanCount
+                    )
+                } else {
+                    // Create new entity
+                    GeneratedCodeEntity(
+                        templateId = template.id,
+                        templateName = template.name,
+                        barcodeFormat = format.name,
+                        barcodeType = format.type.name,
+                        title = currentState.title.takeIf { it.isNotBlank() },
+                        note = currentState.note.takeIf { it.isNotBlank() },
+                        contentFields = contentFieldsJson,
+                        formattedContent = formattedContent,
+                        foregroundColor = currentState.customization.foregroundColor,
+                        backgroundColor = currentState.customization.backgroundColor,
+                        size = currentState.customization.size,
+                        errorCorrection = currentState.customization.errorCorrectionLevel.name,
+                        margin = currentState.customization.margin,
+                        imagePath = fileName,
+                        imageWidth = bitmap.width,
+                        imageHeight = bitmap.height,
+                        createdAt = timestamp,
+                        updatedAt = timestamp,
+                        isFavorite = false,
+                        scanCount = 0
+                    )
+                }
 
-                // Insert and return ID
-                val codeId = generatorRepository.insertGenerated(entity)
+                // Insert or update
+                val codeId = if (isEditMode && existingCode != null) {
+                    generatorRepository.updateGenerated(entity)
+                    entity.id // Return existing ID
+                } else {
+                    generatorRepository.insertGenerated(entity)
+                }
+
                 _state.update {
                     it.copy(
                         isSaving = false,
-                        successMessage = "QR code saved successfully"
+                        successMessage = if (isEditMode) "QR code updated successfully" else "QR code saved successfully"
                     )
                 }
-                Timber.d("Generated code saved successfully with ID: $codeId")
+                Timber.d("Generated code ${if (isEditMode) "updated" else "saved"} successfully with ID: $codeId")
                 codeId
             } catch (e: Exception) {
                 Timber.e(e, "Failed to save generated code")
