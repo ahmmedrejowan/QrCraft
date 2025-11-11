@@ -47,4 +47,7 @@ interface ScanHistoryDao {
 
     @Query("SELECT COUNT(*) FROM scan_history")
     suspend fun getCount(): Int
+
+    @Query("SELECT * FROM scan_history WHERE format = :format AND content = :content LIMIT 1")
+    suspend fun findDuplicate(format: String, content: String): ScanHistoryEntity?
 }

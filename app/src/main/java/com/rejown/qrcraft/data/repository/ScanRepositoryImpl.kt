@@ -65,4 +65,8 @@ class ScanRepositoryImpl(
     override suspend fun getCount(): Int {
         return scanHistoryDao.getCount()
     }
+
+    override suspend fun findDuplicate(format: String, content: String): ScanHistoryEntity? {
+        return scanHistoryDao.findDuplicate(format, content)
+    }
 }

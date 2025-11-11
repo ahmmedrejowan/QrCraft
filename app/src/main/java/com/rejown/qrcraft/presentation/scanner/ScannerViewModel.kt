@@ -97,21 +97,42 @@ class ScannerViewModel(
     suspend fun saveToHistory(result: com.rejown.qrcraft.domain.models.ScanResult): Long {
         return try {
             Timber.tag("QRCraft ScannerViewMode").e("saveToHistory - Starting save operation for: ${result.displayValue}")
-            val entity = ScanHistoryEntity(
-                content = result.displayValue,
-                rawValue = result.rawValue,
+
+            // Check for duplicate based on format and content
+            val existingEntity = scanRepository.findDuplicate(
                 format = result.format.name,
-                contentType = result.contentType.name,
-                timestamp = result.timestamp,
-                isFavorite = false,
-                metadata = result.metadata?.let { Json.encodeToString(it) },
-                imagePath = null
+                content = result.displayValue
             )
 
-            Timber.tag("QRCraft ScannerViewMode").e("saveToHistory - Entity created, calling repository.insertScan")
-            val insertedId = scanRepository.insertScan(entity)
-            Timber.tag("QRCraft ScannerViewMode").e("saveToHistory - Scan saved to history with ID: $insertedId")
-            insertedId
+            if (existingEntity != null) {
+                // Duplicate found - update timestamp and other fields
+                Timber.tag("QRCraft ScannerViewMode").e("saveToHistory - Duplicate found with ID: ${existingEntity.id}, updating timestamp")
+                val updatedEntity = existingEntity.copy(
+                    timestamp = result.timestamp,
+                    rawValue = result.rawValue,
+                    metadata = result.metadata?.let { Json.encodeToString(it) }
+                )
+                scanRepository.updateScan(updatedEntity)
+                Timber.tag("QRCraft ScannerViewMode").e("saveToHistory - Duplicate updated successfully")
+                existingEntity.id
+            } else {
+                // No duplicate - insert new entry
+                Timber.tag("QRCraft ScannerViewMode").e("saveToHistory - No duplicate found, creating new entry")
+                val entity = ScanHistoryEntity(
+                    content = result.displayValue,
+                    rawValue = result.rawValue,
+                    format = result.format.name,
+                    contentType = result.contentType.name,
+                    timestamp = result.timestamp,
+                    isFavorite = false,
+                    metadata = result.metadata?.let { Json.encodeToString(it) },
+                    imagePath = null
+                )
+
+                val insertedId = scanRepository.insertScan(entity)
+                Timber.tag("QRCraft ScannerViewMode").e("saveToHistory - Scan saved to history with ID: $insertedId")
+                insertedId
+            }
         } catch (e: Exception) {
             Timber.tag("QRCraft ScannerViewMode").e(e, "saveToHistory - Failed to save scan to history")
             -1L // Return -1 on error

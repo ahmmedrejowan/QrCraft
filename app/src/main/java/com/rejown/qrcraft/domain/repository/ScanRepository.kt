@@ -16,4 +16,5 @@ interface ScanRepository {
     suspend fun deleteOlderThan(timestamp: Long)
     suspend fun deleteAll()
     suspend fun getCount(): Int
+    suspend fun findDuplicate(format: String, content: String): ScanHistoryEntity?
 }
