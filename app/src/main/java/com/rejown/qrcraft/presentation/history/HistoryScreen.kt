@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,6 +22,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.rejown.qrcraft.presentation.history.components.FilterChips
@@ -47,12 +50,20 @@ fun HistoryScreen(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Tabs
+            // Title
+            Text(
+                text = "History",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
+            )
+
+            // Tabs (Reordered: All, Generated, Scanned)
             TabRow(
                 selectedTabIndex = when (state.selectedTab) {
                     HistoryTab.ALL -> 0
-                    HistoryTab.SCANNED -> 1
-                    HistoryTab.GENERATED -> 2
+                    HistoryTab.GENERATED -> 1
+                    HistoryTab.SCANNED -> 2
                 }
             ) {
                 Tab(
@@ -61,15 +72,8 @@ fun HistoryScreen(
                         viewModel.onEvent(HistoryEvent.OnTabSelected(HistoryTab.ALL))
                         haptic.lightClick()
                     },
-                    text = { Text("All") }
-                )
-                Tab(
-                    selected = state.selectedTab == HistoryTab.SCANNED,
-                    onClick = {
-                        viewModel.onEvent(HistoryEvent.OnTabSelected(HistoryTab.SCANNED))
-                        haptic.lightClick()
-                    },
-                    text = { Text("Scanned") }
+                    text = { Text("All") },
+                    modifier = Modifier.height(48.dp)
                 )
                 Tab(
                     selected = state.selectedTab == HistoryTab.GENERATED,
@@ -77,7 +81,17 @@ fun HistoryScreen(
                         viewModel.onEvent(HistoryEvent.OnTabSelected(HistoryTab.GENERATED))
                         haptic.lightClick()
                     },
-                    text = { Text("Generated") }
+                    text = { Text("Generated") },
+                    modifier = Modifier.height(48.dp)
+                )
+                Tab(
+                    selected = state.selectedTab == HistoryTab.SCANNED,
+                    onClick = {
+                        viewModel.onEvent(HistoryEvent.OnTabSelected(HistoryTab.SCANNED))
+                        haptic.lightClick()
+                    },
+                    text = { Text("Scanned") },
+                    modifier = Modifier.height(48.dp)
                 )
             }
 
@@ -115,6 +129,7 @@ fun HistoryScreen(
                                 when (item) {
                                     is HistoryItemData.Scanned -> {
                                         HistoryItem(
+                                            title = null,
                                             content = item.entity.content,
                                             contentType = item.entity.contentType,
                                             format = item.entity.format,
@@ -144,13 +159,14 @@ fun HistoryScreen(
                                                 )
                                                 haptic.mediumClick()
                                             },
-                                            modifier = Modifier.padding(bottom = 8.dp)
+                                            modifier = Modifier.padding(bottom = 12.dp)
                                         )
                                     }
                                     is HistoryItemData.Generated -> {
                                         HistoryItem(
+                                            title = item.entity.title,
                                             content = item.entity.formattedContent,
-                                            contentType = item.entity.barcodeType,
+                                            contentType = item.entity.templateName,
                                             format = item.entity.barcodeFormat,
                                             timestamp = item.entity.createdAt,
                                             isFavorite = item.entity.isFavorite,
@@ -178,7 +194,7 @@ fun HistoryScreen(
                                                 )
                                                 haptic.mediumClick()
                                             },
-                                            modifier = Modifier.padding(bottom = 8.dp)
+                                            modifier = Modifier.padding(bottom = 12.dp)
                                         )
                                     }
                                 }
@@ -200,6 +216,7 @@ fun HistoryScreen(
                                 key = { it.id }
                             ) { item ->
                                 HistoryItem(
+                                    title = null,
                                     content = item.content,
                                     contentType = item.contentType,
                                     format = item.format,
@@ -228,7 +245,7 @@ fun HistoryScreen(
                                         )
                                         haptic.mediumClick()
                                     },
-                                    modifier = Modifier.padding(bottom = 8.dp)
+                                    modifier = Modifier.padding(bottom = 12.dp)
                                 )
                             }
                         }
@@ -248,8 +265,9 @@ fun HistoryScreen(
                                 key = { it.id }
                             ) { item ->
                                 HistoryItem(
+                                    title = item.title,
                                     content = item.formattedContent,
-                                    contentType = item.barcodeType,
+                                    contentType = item.templateName,
                                     format = item.barcodeFormat,
                                     timestamp = item.createdAt,
                                     isFavorite = item.isFavorite,
@@ -276,7 +294,7 @@ fun HistoryScreen(
                                         )
                                         haptic.mediumClick()
                                     },
-                                    modifier = Modifier.padding(bottom = 8.dp)
+                                    modifier = Modifier.padding(bottom = 12.dp)
                                 )
                             }
                         }

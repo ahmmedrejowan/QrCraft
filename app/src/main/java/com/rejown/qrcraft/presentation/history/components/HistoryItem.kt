@@ -13,8 +13,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import java.text.SimpleDateFormat
@@ -44,6 +45,7 @@ fun HistoryItem(
     onLongPress: () -> Unit,
     onToggleFavorite: () -> Unit,
     modifier: Modifier = Modifier,
+    title: String? = null,
     tag: String? = null
 ) {
     Card(
@@ -54,22 +56,22 @@ fun HistoryItem(
                 onLongClick = onLongPress
             ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isSelected) 8.dp else 2.dp
+            defaultElevation = if (isSelected) 4.dp else 1.dp
         ),
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected) {
                 MaterialTheme.colorScheme.primaryContainer
             } else {
-                MaterialTheme.colorScheme.surface
+                MaterialTheme.colorScheme.surfaceContainerLow
             }
-        )
+        ),
+        shape = RoundedCornerShape(12.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(14.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             // Selection indicator
             if (isSelected) {
@@ -77,83 +79,165 @@ fun HistoryItem(
                     imageVector = Icons.Default.CheckCircle,
                     contentDescription = "Selected",
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(22.dp)
                 )
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(10.dp))
             }
 
             // Content
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Text(
-                    text = content,
-                    style = MaterialTheme.typography.bodyLarge,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                Spacer(modifier = Modifier.padding(4.dp))
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Show tag if provided (for ALL tab)
-                    if (tag != null) {
-                        Surface(
-                            shape = RoundedCornerShape(4.dp),
-                            color = MaterialTheme.colorScheme.secondaryContainer,
-                            modifier = Modifier.padding(end = 4.dp)
-                        ) {
-                            Text(
-                                text = tag,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                            )
-                        }
-                    }
-
+                // Title (if available)
+                if (!title.isNullOrBlank()) {
                     Text(
-                        text = contentType,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = "•",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = format,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
-                Spacer(modifier = Modifier.padding(2.dp))
-
+                // Content
                 Text(
-                    text = formatTimestamp(timestamp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            // Favorite button
-            IconButton(onClick = onToggleFavorite) {
-                Icon(
-                    imageVector = if (isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
-                    contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
-                    tint = if (isFavorite) {
-                        MaterialTheme.colorScheme.primary
+                    text = content,
+                    style = if (title.isNullOrBlank()) {
+                        MaterialTheme.typography.bodyLarge
+                    } else {
+                        MaterialTheme.typography.bodyMedium
+                    },
+                    fontWeight = if (title.isNullOrBlank()) FontWeight.Medium else FontWeight.Normal,
+                    maxLines = if (title.isNullOrBlank()) 2 else 1,
+                    overflow = TextOverflow.Ellipsis,
+                    color = if (title.isNullOrBlank()) {
+                        MaterialTheme.colorScheme.onSurface
                     } else {
                         MaterialTheme.colorScheme.onSurfaceVariant
                     }
                 )
+
+                // Metadata row
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Tag (for ALL tab) - Different colors for Generated vs Scanned
+                    if (tag != null) {
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = if (tag == "Generated") {
+                                MaterialTheme.colorScheme.primaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.secondaryContainer
+                            }
+                        ) {
+                            Text(
+                                text = tag,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (tag == "Generated") {
+                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.onSecondaryContainer
+                                },
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                            )
+                        }
+                    }
+
+                    // Content type (format if it's barcode type)
+                    Text(
+                        text = formatContentType(contentType),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium
+                    )
+
+                    Text(
+                        text = "•",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    // Format (user-friendly)
+                    Text(
+                        text = formatBarcodeFormat(format),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Text(
+                        text = "•",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    // Timestamp
+                    Text(
+                        text = formatTimestamp(timestamp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            // Favorite icon - only show if favorited
+            if (isFavorite) {
+                Spacer(modifier = Modifier.width(4.dp))
+
+                IconButton(
+                    onClick = onToggleFavorite,
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Favorite,
+                        contentDescription = "Remove from favorites",
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
             }
         }
+    }
+}
+
+private fun formatContentType(contentType: String): String {
+    return when (contentType) {
+        "TWO_D" -> "2D"
+        "ONE_D" -> "1D"
+        "URL" -> "URL"
+        "TEXT" -> "Text"
+        "EMAIL" -> "Email"
+        "PHONE" -> "Phone"
+        "SMS" -> "SMS"
+        "WIFI" -> "WiFi"
+        "CONTACT" -> "Contact"
+        "LOCATION" -> "Location"
+        "EVENT" -> "Event"
+        "PRODUCT" -> "Product"
+        else -> contentType.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() }
+    }
+}
+
+private fun formatBarcodeFormat(format: String): String {
+    return when (format) {
+        "QR_CODE" -> "QR Code"
+        "AZTEC" -> "Aztec"
+        "DATA_MATRIX" -> "Data Matrix"
+        "PDF_417" -> "PDF417"
+        "CODABAR" -> "Codabar"
+        "CODE_39" -> "Code 39"
+        "CODE_93" -> "Code 93"
+        "CODE_128" -> "Code 128"
+        "EAN_8" -> "EAN-8"
+        "EAN_13" -> "EAN-13"
+        "ITF" -> "ITF"
+        "UPC_A" -> "UPC-A"
+        "UPC_E" -> "UPC-E"
+        else -> format.replace("_", " ")
     }
 }
 
