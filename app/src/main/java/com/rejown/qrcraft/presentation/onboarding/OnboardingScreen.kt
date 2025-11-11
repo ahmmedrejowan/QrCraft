@@ -1,7 +1,6 @@
 package com.rejown.qrcraft.presentation.onboarding
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,9 +16,9 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -36,31 +35,26 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
 data class OnboardingPage(
-    val title: String,
-    val description: String,
-    val icon: ImageVector
+    val title: String, val description: String, val icon: ImageVector
 )
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingScreen(
-    onFinish: () -> Unit,
-    modifier: Modifier = Modifier
+    onFinish: () -> Unit, modifier: Modifier = Modifier
 ) {
     val pages = listOf(
         OnboardingPage(
             title = "Scan QR Codes",
             description = "Quickly scan QR codes and barcodes using your camera or from gallery images",
             icon = Icons.Default.QrCodeScanner
-        ),
-        OnboardingPage(
+        ), OnboardingPage(
             title = "Generate Codes",
             description = "Create custom QR codes with various content types and customization options",
             icon = Icons.Default.QrCode
-        ),
-        OnboardingPage(
+        ), OnboardingPage(
             title = "Track History",
-            description = "Keep track of all your scanned and generated codes in one place",
+            description = "Keep track of all your scanned and generated QR or Barcodes in one place",
             icon = Icons.Default.History
         )
     )
@@ -79,19 +73,17 @@ fun OnboardingScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Skip button
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
+                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End
             ) {
                 TextButton(
                     onClick = onFinish
                 ) {
                     Text(
-                        text = "Skip",
-                        color = MaterialTheme.colorScheme.primary
+                        text = "Skip", color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -100,12 +92,10 @@ fun OnboardingScreen(
 
             // Pager
             HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.weight(1f)
+                state = pagerState, modifier = Modifier.weight(1f)
             ) { page ->
                 OnboardingPageContent(
-                    page = pages[page],
-                    modifier = Modifier.fillMaxSize()
+                    page = pages[page], modifier = Modifier.fillMaxSize()
                 )
             }
 
@@ -137,8 +127,7 @@ fun OnboardingScreen(
             // Action buttons
             if (pagerState.currentPage == pages.size - 1) {
                 Button(
-                    onClick = onFinish,
-                    modifier = Modifier
+                    onClick = onFinish, modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp)
                 ) {
@@ -150,8 +139,7 @@ fun OnboardingScreen(
                         scope.launch {
                             pagerState.animateScrollToPage(pagerState.currentPage + 1)
                         }
-                    },
-                    modifier = Modifier
+                    }, modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp)
                 ) {
@@ -166,8 +154,7 @@ fun OnboardingScreen(
 
 @Composable
 private fun OnboardingPageContent(
-    page: OnboardingPage,
-    modifier: Modifier = Modifier
+    page: OnboardingPage, modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier,
