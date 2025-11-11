@@ -246,27 +246,6 @@ private fun CreationContent(
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
 
-            // Capacity Indicator
-            if (state.maxCapacity > 0) {
-                CapacityIndicator(
-                    currentLength = state.contentLength,
-                    maxCapacity = state.maxCapacity,
-                    percentage = state.capacityPercentage,
-                    warning = state.capacityWarning
-                )
-            }
-
-            // Format Selection Row
-            FormatSelectionRow(
-                format = state.selectedFormat?.name ?: "Not selected",
-                onClick = onFormatClick
-            )
-
-            // Customization Row
-            CustomizationRow(onClick = onCustomizationClick)
-
-            Divider()
-
             // Dynamic Input Fields
             state.template?.let { template ->
                 DynamicInputForm(
@@ -277,7 +256,32 @@ private fun CreationContent(
                 )
             }
 
-            Divider()
+            // Capacity Indicator
+            if (state.maxCapacity > 0) {
+                CapacityIndicator(
+                    currentLength = state.contentLength,
+                    maxCapacity = state.maxCapacity,
+                    percentage = state.capacityPercentage,
+                    warning = state.capacityWarning
+                )
+            }
+
+            // Format and Customization in same row (compact cards)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FormatSelectionCard(
+                    format = state.selectedFormat?.name ?: "Not selected",
+                    onClick = onFormatClick,
+                    modifier = Modifier.weight(1f)
+                )
+
+                CustomizationCard(
+                    onClick = onCustomizationClick,
+                    modifier = Modifier.weight(1f)
+                )
+            }
 
             // Title Field
             OutlinedTextField(
@@ -352,57 +356,68 @@ private fun CreationContent(
 }
 
 @Composable
-private fun FormatSelectionRow(
+private fun FormatSelectionCard(
     format: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+    Card(
+        onClick = onClick,
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
     ) {
-        Column {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
             Text(
                 text = "Format",
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = format,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1
             )
-        }
-
-        TextButton(onClick = onClick) {
-            Text("Edit")
         }
     }
 }
 
 @Composable
-private fun CustomizationRow(
+private fun CustomizationCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "Customization",
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Medium
+    Card(
+        onClick = onClick,
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
-
-        TextButton(onClick = onClick) {
-            Text("Edit")
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = "Customize",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = "Style & Colors",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1
+            )
         }
     }
 }
