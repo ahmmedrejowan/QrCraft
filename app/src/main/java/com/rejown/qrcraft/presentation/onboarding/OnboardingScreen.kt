@@ -68,13 +68,19 @@ fun OnboardingScreen(
     val pagerState = rememberPagerState(pageCount = { pages.size })
     val scope = rememberCoroutineScope()
 
-    Box(modifier = modifier.fillMaxSize()) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surface)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(modifier = Modifier.height(24.dp))
+
             // Skip button
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -83,7 +89,10 @@ fun OnboardingScreen(
                 TextButton(
                     onClick = onFinish
                 ) {
-                    Text("Skip")
+                    Text(
+                        text = "Skip",
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
 
@@ -177,7 +186,8 @@ private fun OnboardingPageContent(
         Text(
             text = page.title,
             style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurface
         )
 
         Spacer(modifier = Modifier.height(16.dp))

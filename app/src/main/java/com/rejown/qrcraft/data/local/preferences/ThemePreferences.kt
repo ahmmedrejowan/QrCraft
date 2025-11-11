@@ -33,7 +33,7 @@ class ThemePreferences(private val context: Context) {
 
     fun isDynamicColorEnabled(): Flow<Boolean> {
         return context.dataStore.data.map { preferences ->
-            preferences[DYNAMIC_COLOR_KEY] ?: true
+            preferences[DYNAMIC_COLOR_KEY] ?: false
         }
     }
 
