@@ -26,15 +26,19 @@ fun CodePreview(
     val is1D = selectedFormat?.let { is1DFormat(it) } ?: false
 
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .then(
-                if (is1D) {
-                    Modifier.height(160.dp)
-                } else {
-                    Modifier.aspectRatio(1f)
-                }
-            ),
+        modifier = modifier.then(
+            if (is1D) {
+                // 1D codes (linear barcodes) - rectangle
+                Modifier
+                    .fillMaxWidth()
+                    .height(240.dp)
+            } else {
+                // 2D codes (QR, Data Matrix, Aztec, etc.) - smaller square
+                Modifier
+                    .fillMaxWidth(0.75f)
+                    .aspectRatio(1f)
+            }
+        ),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant

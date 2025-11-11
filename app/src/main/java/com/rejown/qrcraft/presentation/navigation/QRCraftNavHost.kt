@@ -47,14 +47,19 @@ fun QRCraftNavHost(
 
         composable<Screen.Creation> { backStackEntry ->
             val creation = backStackEntry.toRoute<Screen.Creation>()
+            val isEditMode = creation.codeId != null
+
             CreationScreen(
                 templateId = creation.templateId,
                 codeId = creation.codeId, // For edit mode
                 onSaved = { codeId ->
-                    navController.navigate(Screen.CodeDetails(codeId)) {
-                        // Pop back to the previous screen (either Generator or CodeDetails)
-                        popUpTo(navController.previousBackStackEntry?.destination?.route ?: Screen.Generator::class.qualifiedName!!) {
-                            inclusive = false
+                    if (isEditMode) {
+                        // Edit mode: Just pop back to the existing CodeDetails screen
+                        navController.popBackStack()
+                    } else {
+                        // Create mode: Navigate to new CodeDetails and clear creation screen from stack
+                        navController.navigate(Screen.CodeDetails(codeId)) {
+                            popUpTo<Screen.Generator> { inclusive = false }
                         }
                     }
                 },

@@ -226,114 +226,128 @@ private fun CreationContent(
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = modifier.fillMaxSize()
     ) {
-        // Code Preview
-        CodePreview(
-            bitmap = state.generatedBitmap,
-            isGenerating = state.isGenerating,
-            error = state.error,
-            selectedFormat = state.selectedFormat
-        )
-
-        // Capacity Indicator
-        if (state.maxCapacity > 0) {
-            CapacityIndicator(
-                currentLength = state.contentLength,
-                maxCapacity = state.maxCapacity,
-                percentage = state.capacityPercentage,
-                warning = state.capacityWarning
-            )
-        }
-
-        // Format Selection Row
-        FormatSelectionRow(
-            format = state.selectedFormat?.name ?: "Not selected",
-            onClick = onFormatClick
-        )
-
-        // Customization Row
-        CustomizationRow(onClick = onCustomizationClick)
-
-        Divider()
-
-        // Dynamic Input Fields
-        state.template?.let { template ->
-            DynamicInputForm(
-                fields = template.fields,
-                values = state.fieldValues,
-                errors = state.validationErrors,
-                onValueChange = onFieldValueChange
-            )
-        }
-
-        Divider()
-
-        // Title Field
-        OutlinedTextField(
-            value = state.title,
-            onValueChange = onTitleChange,
-            label = { Text("Title (Optional)") },
-            placeholder = { Text("e.g., My Business Card") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
-
-        // Note Field
-        OutlinedTextField(
-            value = state.note,
-            onValueChange = onNoteChange,
-            label = { Text("Note (Optional)") },
-            placeholder = { Text("Add any notes or description") },
-            modifier = Modifier.fillMaxWidth(),
-            minLines = 3,
-            maxLines = 5
-        )
-
-        Divider()
-
-        // Action Buttons
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        // Scrollable content
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Button(
-                onClick = onSave,
-                modifier = Modifier.weight(1f),
-                enabled = state.generatedBitmap != null && !state.isSaving && !state.isSharing
-            ) {
-                if (state.isSaving) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Text("Save")
-                }
+            // Code Preview
+            CodePreview(
+                bitmap = state.generatedBitmap,
+                isGenerating = state.isGenerating,
+                error = state.error,
+                selectedFormat = state.selectedFormat,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+
+            // Capacity Indicator
+            if (state.maxCapacity > 0) {
+                CapacityIndicator(
+                    currentLength = state.contentLength,
+                    maxCapacity = state.maxCapacity,
+                    percentage = state.capacityPercentage,
+                    warning = state.capacityWarning
+                )
             }
 
-            OutlinedButton(
-                onClick = onShare,
-                modifier = Modifier.weight(1f),
-                enabled = state.generatedBitmap != null && !state.isSaving && !state.isSharing
+            // Format Selection Row
+            FormatSelectionRow(
+                format = state.selectedFormat?.name ?: "Not selected",
+                onClick = onFormatClick
+            )
+
+            // Customization Row
+            CustomizationRow(onClick = onCustomizationClick)
+
+            Divider()
+
+            // Dynamic Input Fields
+            state.template?.let { template ->
+                DynamicInputForm(
+                    fields = template.fields,
+                    values = state.fieldValues,
+                    errors = state.validationErrors,
+                    onValueChange = onFieldValueChange
+                )
+            }
+
+            Divider()
+
+            // Title Field
+            OutlinedTextField(
+                value = state.title,
+                onValueChange = onTitleChange,
+                label = { Text("Title (Optional)") },
+                placeholder = { Text("e.g., My Business Card") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
+            // Note Field
+            OutlinedTextField(
+                value = state.note,
+                onValueChange = onNoteChange,
+                label = { Text("Note (Optional)") },
+                placeholder = { Text("Add any notes or description") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 3,
+                maxLines = 5
+            )
+
+            // Bottom spacer for breathing room
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        // Fixed bottom action buttons
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            tonalElevation = 3.dp,
+            shadowElevation = 8.dp
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                if (state.isSharing) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Text("Share")
+                Button(
+                    onClick = onSave,
+                    modifier = Modifier.weight(1f),
+                    enabled = state.generatedBitmap != null && !state.isSaving && !state.isSharing
+                ) {
+                    if (state.isSaving) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(if (state.isEditMode) "Update" else "Save")
+                    }
+                }
+
+                OutlinedButton(
+                    onClick = onShare,
+                    modifier = Modifier.weight(1f),
+                    enabled = state.generatedBitmap != null && !state.isSaving && !state.isSharing
+                ) {
+                    if (state.isSharing) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Share")
+                    }
                 }
             }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
