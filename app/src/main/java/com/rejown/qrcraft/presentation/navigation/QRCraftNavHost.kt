@@ -59,7 +59,7 @@ fun QRCraftNavHost(
                     } else {
                         // Create mode: Navigate to new CodeDetails and clear creation screen from stack
                         navController.navigate(Screen.CodeDetails(codeId)) {
-                            popUpTo<Screen.Generator> { inclusive = false }
+                            popUpTo<Screen.Main> { inclusive = false }
                         }
                     }
                 },
