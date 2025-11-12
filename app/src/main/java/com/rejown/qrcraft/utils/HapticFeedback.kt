@@ -12,16 +12,16 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
 import com.rejown.qrcraft.data.local.preferences.ThemePreferences
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 
 /**
  * Utility class for providing haptic feedback throughout the app
  */
-class HapticFeedback(private val context: Context) {
+class HapticFeedback(
+    private val context: Context,
+    private val isEnabled: () -> Boolean = { true }
+) {
 
     private val vibrator: Vibrator? by lazy {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -30,14 +30,6 @@ class HapticFeedback(private val context: Context) {
         } else {
             @Suppress("DEPRECATION")
             context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
-        }
-    }
-
-    private val themePreferences by lazy { ThemePreferences(context) }
-
-    private fun isEnabled(): Boolean {
-        return runBlocking {
-            themePreferences.isHapticFeedbackEnabled().first()
         }
     }
 
@@ -178,19 +170,23 @@ class HapticFeedback(private val context: Context) {
 }
 
 /**
- * Composable function to remember HapticFeedback instance
+ * Composable function to remember HapticFeedback instance with preference checking
  */
 @Composable
 fun rememberHapticFeedback(): HapticFeedback {
     val context = LocalContext.current
-    return remember(context) {
-        HapticFeedback(context)
+    val themePreferences = remember { ThemePreferences(context) }
+    val isEnabled by themePreferences.isHapticFeedbackEnabled().collectAsState(initial = true)
+
+    return remember(context, isEnabled) {
+        HapticFeedback(context) { isEnabled }
     }
 }
 
 /**
  * Extension function to get haptic feedback helper from View
+ * Note: This version doesn't check preferences, use rememberHapticFeedback() in Composables
  */
 fun View.hapticFeedback(): HapticFeedback {
-    return HapticFeedback(context)
+    return HapticFeedback(context) { true }
 }

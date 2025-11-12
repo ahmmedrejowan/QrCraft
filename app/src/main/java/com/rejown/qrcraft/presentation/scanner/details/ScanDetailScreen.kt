@@ -35,6 +35,9 @@ import java.text.SimpleDateFormat
 import java.util.*
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.set
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,11 +45,17 @@ fun ScanDetailScreen(
     scanResult: ScanResult,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
-    autoSave: Boolean = true // Auto-save for fresh scans, false for history items
+    autoSave: Boolean = true, // Auto-save for fresh scans, false for history items
+    viewModel: ScanHistoryDetailViewModel? = null // ViewModel for history items (with delete)
 ) {
     timber.log.Timber.tag("QRCraft ScanDetailScree").e("composable - Composing with result: ${scanResult.displayValue}, type: ${scanResult.contentType}, autoSave: $autoSave")
 
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val haptic = com.rejown.qrcraft.utils.rememberHapticFeedback()
+    val viewModelState by (viewModel?.state?.collectAsState() ?: remember {
+        MutableStateFlow(ScanHistoryDetailState()).asStateFlow()
+    }.collectAsState())
 
     // Get the singleton ScannerViewModel instance (not creating new instance with koinViewModel)
     val scannerViewModel: com.rejown.qrcraft.presentation.scanner.ScannerViewModel = org.koin.compose.koinInject()
@@ -82,6 +91,37 @@ fun ScanDetailScreen(
         }
     }
 
+    // Delete confirmation dialog (only for history items)
+    if (viewModelState.showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel?.hideDeleteDialog() },
+            title = { Text("Delete scan?") },
+            text = { Text("This action cannot be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        scope.launch {
+                            val deleted = viewModel?.deleteScan() ?: false
+                            if (deleted) {
+                                onBack()
+                            }
+                        }
+                        haptic.strongImpact()
+                    }
+                ) {
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { viewModel?.hideDeleteDialog() }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -98,6 +138,21 @@ fun ScanDetailScreen(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
                         )
+                    }
+                },
+                actions = {
+                    // Show delete button only for history items
+                    if (!autoSave && viewModel != null) {
+                        IconButton(onClick = {
+                            viewModel.showDeleteDialog()
+                            haptic.lightClick()
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

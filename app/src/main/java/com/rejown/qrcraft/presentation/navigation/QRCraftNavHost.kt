@@ -138,7 +138,8 @@ fun QRCraftNavHost(
                         onBack = {
                             navController.popBackStack()
                         },
-                        autoSave = false // Don't auto-save - already in database
+                        autoSave = false, // Don't auto-save - already in database
+                        viewModel = viewModel
                     )
                 }
             }
