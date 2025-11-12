@@ -161,6 +161,22 @@ fun CodeDetailScreen(
                     }
                 },
                 actions = {
+                    // Delete button
+                    IconButton(
+                        onClick = {
+                            viewModel.showDeleteDialog()
+                            haptic.lightClick()
+                        },
+                        enabled = state.code != null
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+
+                    // Favorite button
                     IconButton(
                         onClick = {
                             viewModel.toggleFavorite()
@@ -264,10 +280,6 @@ fun CodeDetailScreen(
                                 haptic.lightClick()
                             }
                         },
-                        onDelete = {
-                            viewModel.showDeleteDialog()
-                            haptic.lightClick()
-                        },
                         modifier = Modifier.padding(paddingValues)
                     )
                 }
@@ -361,7 +373,6 @@ private fun CodeDetailContent(
     onSave: () -> Unit,
     onOpen: (() -> Unit)?,
     onEdit: (() -> Unit)?,
-    onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val code = state.code ?: return
@@ -530,24 +541,6 @@ private fun CodeDetailContent(
                     Spacer(modifier = Modifier.width(6.dp))
                     Text("Edit")
                 }
-            }
-
-            // Delete
-            OutlinedButton(
-                onClick = onDelete,
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error
-                ),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text("Delete")
             }
         }
 
