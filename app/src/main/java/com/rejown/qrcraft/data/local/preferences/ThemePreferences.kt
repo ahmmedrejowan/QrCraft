@@ -17,7 +17,6 @@ class ThemePreferences(private val context: Context) {
     companion object {
         private val THEME_KEY = stringPreferencesKey("theme")
         private val DYNAMIC_COLOR_KEY = booleanPreferencesKey("dynamic_color")
-        private val HAPTIC_FEEDBACK_KEY = booleanPreferencesKey("haptic_feedback")
     }
 
     fun getTheme(): Flow<String> {
@@ -41,18 +40,6 @@ class ThemePreferences(private val context: Context) {
     suspend fun setDynamicColor(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[DYNAMIC_COLOR_KEY] = enabled
-        }
-    }
-
-    fun isHapticFeedbackEnabled(): Flow<Boolean> {
-        return context.dataStore.data.map { preferences ->
-            preferences[HAPTIC_FEEDBACK_KEY] ?: true
-        }
-    }
-
-    suspend fun setHapticFeedback(enabled: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[HAPTIC_FEEDBACK_KEY] = enabled
         }
     }
 }

@@ -58,7 +58,6 @@ import com.rejown.qrcraft.presentation.scanner.components.ScanResultBottomSheet
 import com.rejown.qrcraft.presentation.scanner.state.ScannerEvent
 import com.rejown.qrcraft.presentation.scanner.state.ScannerScreenState
 import com.rejown.qrcraft.presentation.scanner.state.ScanningState
-import com.rejown.qrcraft.utils.rememberHapticFeedback
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -72,7 +71,6 @@ fun ScannerScreen(
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
     val scope = rememberCoroutineScope()
-    val haptic = rememberHapticFeedback()
 
     val cameraPermissionState = rememberPermissionState(
         permission = Manifest.permission.CAMERA
@@ -98,7 +96,6 @@ fun ScannerScreen(
                     val result = com.rejown.qrcraft.utils.scanner.ImageDecoder.decodeWithMLKit(inputImage)
                     if (result != null) {
                         viewModel.onEvent(ScannerEvent.OnBarcodeDetected(result))
-                        haptic.success()
                     } else {
                         // Try ZXing fallback
                         val bitmap = android.graphics.BitmapFactory.decodeStream(
@@ -107,15 +104,12 @@ fun ScannerScreen(
                         val zxingResult = com.rejown.qrcraft.utils.scanner.ImageDecoder.decodeWithZXing(bitmap)
                         if (zxingResult != null) {
                             viewModel.onEvent(ScannerEvent.OnBarcodeDetected(zxingResult))
-                            haptic.success()
                         } else {
                             Toast.makeText(context, "No code found in image", Toast.LENGTH_SHORT).show()
-                            haptic.error()
                         }
                     }
                 } catch (e: Exception) {
                     Toast.makeText(context, "Failed to scan image: ${e.message}", Toast.LENGTH_SHORT).show()
-                    haptic.error()
                 }
             }
         }
@@ -136,12 +130,10 @@ fun ScannerScreen(
         if (state.scanningState is com.rejown.qrcraft.presentation.scanner.state.ScanningState.Success) {
             val result = (state.scanningState as com.rejown.qrcraft.presentation.scanner.state.ScanningState.Success).result
             timber.log.Timber.tag("QRCraft ScannerScreen").e("LaunchedEffect - Success state detected, navigating to detail. Result: ${result.displayValue}")
-            haptic.success()
             onNavigateToDetail()
             timber.log.Timber.tag("QRCraft ScannerScreen").e("LaunchedEffect - Navigation to detail completed")
         } else if (state.scanningState is com.rejown.qrcraft.presentation.scanner.state.ScanningState.Error) {
             timber.log.Timber.tag("QRCraft ScannerScreen").e("LaunchedEffect - Error state detected")
-            haptic.error()
         }
     }
 
@@ -175,7 +167,6 @@ fun ScannerScreen(
                                 hasCheckedPermission = true
                                 cameraPermissionState.launchPermissionRequest()
                             }
-                            haptic.lightClick()
                         }
                     )
                 }
@@ -210,7 +201,6 @@ fun ScannerScreen(
                             ExtendedFloatingActionButton(
                                 onClick = {
                                     viewModel.onEvent(ScannerEvent.StartPreview)
-                                    haptic.mediumClick()
                                 },
                                 icon = {
                                     Icon(Icons.Default.Videocam, "Start Preview")
@@ -285,12 +275,10 @@ fun ScannerScreen(
                     },
                     onCopy = {
                         copyToClipboard(context, result.displayValue)
-                        haptic.lightClick()
                         Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
                     },
                     onShare = {
                         shareContent(context, result.displayValue)
-                        haptic.lightClick()
                     },
                     onOpen = {
                         if (result.contentType == ContentType.URL) {
@@ -299,7 +287,6 @@ fun ScannerScreen(
                     },
                     onSave = {
                         viewModel.onEvent(ScannerEvent.OnSaveToHistory)
-                        haptic.success()
                         Toast.makeText(context, "Saved to history", Toast.LENGTH_SHORT).show()
                         showBottomSheet = false
                         scope.launch {
@@ -324,7 +311,6 @@ fun ScannerScreen(
             SmallFloatingActionButton(
                 onClick = {
                     viewModel.onEvent(ScannerEvent.TogglePreview)
-                    haptic.mediumClick()
                 },
                 modifier = Modifier
                     .align(Alignment.TopEnd)
@@ -353,7 +339,6 @@ fun ScannerScreen(
             // Gallery button - Left bottom
             androidx.compose.material3.IconButton(
                 onClick = {
-                    haptic.lightClick()
                     galleryLauncher.launch(
                         PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                     )
@@ -374,7 +359,6 @@ fun ScannerScreen(
             androidx.compose.material3.IconButton(
                 onClick = {
                     isFlashlightOn = !isFlashlightOn
-                    haptic.mediumClick()
                 },
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
@@ -426,7 +410,6 @@ fun ScannerScreen(
                         hasCheckedPermission = true
                         cameraPermissionState.launchPermissionRequest()
                     }
-                    haptic.lightClick()
                 }
             )
         }

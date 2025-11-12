@@ -9,10 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -32,7 +28,6 @@ import com.rejown.qrcraft.presentation.history.state.HistoryEvent
 import com.rejown.qrcraft.presentation.history.state.HistoryItemData
 import com.rejown.qrcraft.presentation.history.state.HistoryTab
 import com.rejown.qrcraft.presentation.navigation.Screen
-import com.rejown.qrcraft.utils.rememberHapticFeedback
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -42,7 +37,6 @@ fun HistoryScreen(
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.state.collectAsState()
-    val haptic = rememberHapticFeedback()
 
     Box(
         modifier = modifier.fillMaxSize()
@@ -70,7 +64,6 @@ fun HistoryScreen(
                     selected = state.selectedTab == HistoryTab.ALL,
                     onClick = {
                         viewModel.onEvent(HistoryEvent.OnTabSelected(HistoryTab.ALL))
-                        haptic.lightClick()
                     },
                     text = { Text("All") },
                     modifier = Modifier.height(48.dp)
@@ -79,7 +72,6 @@ fun HistoryScreen(
                     selected = state.selectedTab == HistoryTab.GENERATED,
                     onClick = {
                         viewModel.onEvent(HistoryEvent.OnTabSelected(HistoryTab.GENERATED))
-                        haptic.lightClick()
                     },
                     text = { Text("Generated") },
                     modifier = Modifier.height(48.dp)
@@ -88,7 +80,6 @@ fun HistoryScreen(
                     selected = state.selectedTab == HistoryTab.SCANNED,
                     onClick = {
                         viewModel.onEvent(HistoryEvent.OnTabSelected(HistoryTab.SCANNED))
-                        haptic.lightClick()
                     },
                     text = { Text("Scanned") },
                     modifier = Modifier.height(48.dp)
@@ -108,7 +99,6 @@ fun HistoryScreen(
                 selectedFilter = state.selectedFilter,
                 onFilterSelected = { filter ->
                     viewModel.onEvent(HistoryEvent.OnFilterSelected(filter))
-                    haptic.lightClick()
                 }
             )
 
@@ -135,20 +125,11 @@ fun HistoryScreen(
                                             format = item.entity.format,
                                             timestamp = item.entity.timestamp,
                                             isFavorite = item.entity.isFavorite,
-                                            isSelected = state.selectedItems.contains(item.id),
                                             tag = "Scanned",
                                             onClicked = {
-                                                if (state.isSelectionMode) {
-                                                    viewModel.onEvent(HistoryEvent.OnItemLongPressed(item.id))
-                                                } else {
-                                                    navController.navigate(
-                                                        Screen.ScanHistoryDetail(scanId = item.id)
-                                                    )
-                                                }
-                                            },
-                                            onLongPress = {
-                                                viewModel.onEvent(HistoryEvent.OnItemLongPressed(item.id))
-                                                haptic.strongImpact()
+                                                navController.navigate(
+                                                    Screen.ScanHistoryDetail(scanId = item.id)
+                                                )
                                             },
                                             onToggleFavorite = {
                                                 viewModel.onEvent(
@@ -157,7 +138,6 @@ fun HistoryScreen(
                                                         !item.entity.isFavorite
                                                     )
                                                 )
-                                                haptic.mediumClick()
                                             },
                                             modifier = Modifier.padding(bottom = 12.dp)
                                         )
@@ -170,20 +150,11 @@ fun HistoryScreen(
                                             format = item.entity.barcodeFormat,
                                             timestamp = item.entity.createdAt,
                                             isFavorite = item.entity.isFavorite,
-                                            isSelected = state.selectedItems.contains(item.id),
                                             tag = "Generated",
                                             onClicked = {
-                                                if (state.isSelectionMode) {
-                                                    viewModel.onEvent(HistoryEvent.OnItemLongPressed(item.id))
-                                                } else {
-                                                    navController.navigate(
-                                                        Screen.CodeDetails(codeId = item.id)
-                                                    )
-                                                }
-                                            },
-                                            onLongPress = {
-                                                viewModel.onEvent(HistoryEvent.OnItemLongPressed(item.id))
-                                                haptic.strongImpact()
+                                                navController.navigate(
+                                                    Screen.CodeDetails(codeId = item.id)
+                                                )
                                             },
                                             onToggleFavorite = {
                                                 viewModel.onEvent(
@@ -192,7 +163,6 @@ fun HistoryScreen(
                                                         !item.entity.isFavorite
                                                     )
                                                 )
-                                                haptic.mediumClick()
                                             },
                                             modifier = Modifier.padding(bottom = 12.dp)
                                         )
@@ -222,19 +192,10 @@ fun HistoryScreen(
                                     format = item.format,
                                     timestamp = item.timestamp,
                                     isFavorite = item.isFavorite,
-                                    isSelected = state.selectedItems.contains(item.id),
                                     onClicked = {
-                                        if (state.isSelectionMode) {
-                                            viewModel.onEvent(HistoryEvent.OnItemLongPressed(item.id))
-                                        } else {
-                                            navController.navigate(
-                                                Screen.ScanHistoryDetail(scanId = item.id)
-                                            )
-                                        }
-                                    },
-                                    onLongPress = {
-                                        viewModel.onEvent(HistoryEvent.OnItemLongPressed(item.id))
-                                        haptic.strongImpact()
+                                        navController.navigate(
+                                            Screen.ScanHistoryDetail(scanId = item.id)
+                                        )
                                     },
                                     onToggleFavorite = {
                                         viewModel.onEvent(
@@ -243,7 +204,6 @@ fun HistoryScreen(
                                                 !item.isFavorite
                                             )
                                         )
-                                        haptic.mediumClick()
                                     },
                                     modifier = Modifier.padding(bottom = 12.dp)
                                 )
@@ -271,19 +231,10 @@ fun HistoryScreen(
                                     format = item.barcodeFormat,
                                     timestamp = item.createdAt,
                                     isFavorite = item.isFavorite,
-                                    isSelected = state.selectedItems.contains(item.id),
                                     onClicked = {
-                                        if (state.isSelectionMode) {
-                                            viewModel.onEvent(HistoryEvent.OnItemLongPressed(item.id))
-                                        } else {
-                                            navController.navigate(
-                                                Screen.CodeDetails(codeId = item.id)
-                                            )
-                                        }
-                                    },
-                                    onLongPress = {
-                                        viewModel.onEvent(HistoryEvent.OnItemLongPressed(item.id))
-                                        haptic.strongImpact()
+                                        navController.navigate(
+                                            Screen.CodeDetails(codeId = item.id)
+                                        )
                                     },
                                     onToggleFavorite = {
                                         viewModel.onEvent(
@@ -292,7 +243,6 @@ fun HistoryScreen(
                                                 !item.isFavorite
                                             )
                                         )
-                                        haptic.mediumClick()
                                     },
                                     modifier = Modifier.padding(bottom = 12.dp)
                                 )
@@ -300,24 +250,6 @@ fun HistoryScreen(
                         }
                     }
                 }
-            }
-        }
-
-        // FAB for bulk delete
-        if (state.isSelectionMode && state.selectedItems.isNotEmpty()) {
-            FloatingActionButton(
-                onClick = {
-                    viewModel.onEvent(HistoryEvent.OnDeleteSelected)
-                    haptic.strongImpact()
-                },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(16.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete selected"
-                )
             }
         }
     }

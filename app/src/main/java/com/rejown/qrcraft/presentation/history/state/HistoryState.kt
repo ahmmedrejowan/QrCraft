@@ -11,9 +11,7 @@ data class HistoryState(
     val searchQuery: String = "",
     val selectedFilter: String? = null,
     val isLoading: Boolean = false,
-    val error: String? = null,
-    val selectedItems: Set<Long> = emptySet(),
-    val isSelectionMode: Boolean = false
+    val error: String? = null
 )
 
 enum class HistoryTab {
@@ -49,11 +47,5 @@ sealed interface HistoryEvent {
     data class OnTabSelected(val tab: HistoryTab) : HistoryEvent
     data class OnSearchQueryChanged(val query: String) : HistoryEvent
     data class OnFilterSelected(val filter: String?) : HistoryEvent
-    data class OnItemClicked(val id: Long) : HistoryEvent
-    data class OnItemLongPressed(val id: Long) : HistoryEvent
     data class OnToggleFavorite(val id: Long, val isFavorite: Boolean) : HistoryEvent
-    data class OnDeleteItem(val id: Long) : HistoryEvent
-    data object OnDeleteSelected : HistoryEvent
-    data object OnClearSelection : HistoryEvent
-    data object OnDeleteAll : HistoryEvent
 }

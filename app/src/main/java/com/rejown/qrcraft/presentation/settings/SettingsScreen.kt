@@ -46,6 +46,7 @@ import com.rejown.qrcraft.data.local.preferences.ThemePreferences
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
+import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,7 +61,6 @@ fun SettingsScreen(
 
     val currentTheme by themePreferences.getTheme().collectAsState(initial = "System")
     val dynamicColorEnabled by themePreferences.isDynamicColorEnabled().collectAsState(initial = false)
-    val hapticFeedbackEnabled by themePreferences.isHapticFeedbackEnabled().collectAsState(initial = true)
 
     var showThemeDialog by remember { mutableStateOf(false) }
     var showClearScanHistoryDialog by remember { mutableStateOf(false) }
@@ -126,7 +126,9 @@ fun SettingsScreen(
             SettingsClickableItem(
                 title = "Theme",
                 description = currentTheme,
-                onClick = { showThemeDialog = true }
+                onClick = {
+                    showThemeDialog = true
+                }
             )
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -147,24 +149,6 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // General Section
-        SettingsSectionTitle("General")
-
-        SettingsCard {
-            SettingsItem(
-                title = "Haptic Feedback",
-                description = "Vibration on interactions",
-                checked = hapticFeedbackEnabled,
-                onCheckedChange = { enabled ->
-                    scope.launch {
-                        themePreferences.setHapticFeedback(enabled)
-                    }
-                }
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
         // Data Section
         SettingsSectionTitle("Data")
 
@@ -172,7 +156,9 @@ fun SettingsScreen(
             SettingsClickableItem(
                 title = "Clear Scan History",
                 description = "Delete all scanned codes",
-                onClick = { showClearScanHistoryDialog = true }
+                onClick = {
+                    showClearScanHistoryDialog = true
+                }
             )
 
             HorizontalDivider()
@@ -180,7 +166,9 @@ fun SettingsScreen(
             SettingsClickableItem(
                 title = "Clear Generated History",
                 description = "Delete all generated codes",
-                onClick = { showClearGeneratedHistoryDialog = true }
+                onClick = {
+                    showClearGeneratedHistoryDialog = true
+                }
             )
 
             HorizontalDivider()
@@ -188,7 +176,9 @@ fun SettingsScreen(
             SettingsClickableItem(
                 title = "Clear All Data",
                 description = "Delete all history and settings",
-                onClick = { showClearAllDataDialog = true }
+                onClick = {
+                    showClearAllDataDialog = true
+                }
             )
         }
 
@@ -201,7 +191,9 @@ fun SettingsScreen(
             SettingsClickableItem(
                 title = "Version ${BuildConfig.VERSION_NAME}",
                 description = "View changelog",
-                onClick = { showChangelogSheet = true }
+                onClick = {
+                    showChangelogSheet = true
+                }
             )
 
             HorizontalDivider()
@@ -209,7 +201,9 @@ fun SettingsScreen(
             SettingsClickableItem(
                 title = "Privacy Policy",
                 description = "View our privacy policy",
-                onClick = { showPrivacyPolicySheet = true }
+                onClick = {
+                    showPrivacyPolicySheet = true
+                }
             )
 
             HorizontalDivider()
@@ -217,7 +211,9 @@ fun SettingsScreen(
             SettingsClickableItem(
                 title = "Open Source Licenses",
                 description = "View third-party libraries",
-                onClick = { showLicensesSheet = true }
+                onClick = {
+                    showLicensesSheet = true
+                }
             )
 
             HorizontalDivider()
@@ -225,7 +221,9 @@ fun SettingsScreen(
             SettingsClickableItem(
                 title = "Creator",
                 description = "About the developer",
-                onClick = { showCreatorSheet = true }
+                onClick = {
+                    showCreatorSheet = true
+                }
             )
 
             HorizontalDivider()
@@ -233,7 +231,9 @@ fun SettingsScreen(
             SettingsClickableItem(
                 title = "App License",
                 description = "GNU General Public License v3.0",
-                onClick = { showAppLicenseSheet = true }
+                onClick = {
+                    showAppLicenseSheet = true
+                }
             )
 
             HorizontalDivider()
@@ -243,7 +243,7 @@ fun SettingsScreen(
                 description = "Get in touch with the developer",
                 onClick = {
                     val intent = android.content.Intent(android.content.Intent.ACTION_SENDTO).apply {
-                        data = android.net.Uri.parse("mailto:kmrejowan@gmail.com")
+                        data = "mailto:kmrejowan@gmail.com".toUri()
                         putExtra(android.content.Intent.EXTRA_SUBJECT, "QRCraft Feedback")
                     }
                     context.startActivity(intent)
@@ -258,7 +258,7 @@ fun SettingsScreen(
                 onClick = {
                     val intent = android.content.Intent(
                         android.content.Intent.ACTION_VIEW,
-                        android.net.Uri.parse("https://github.com/ahmmedrejowan/QrCraft")
+                        "https://github.com/ahmmedrejowan/QrCraft".toUri()
                     )
                     context.startActivity(intent)
                 }
@@ -279,7 +279,9 @@ fun SettingsScreen(
     if (showThemeDialog) {
         ThemeSelectionDialog(
             currentTheme = currentTheme,
-            onDismiss = { showThemeDialog = false },
+            onDismiss = {
+                showThemeDialog = false
+            },
             onThemeSelected = { theme ->
                 scope.launch {
                     themePreferences.setTheme(theme)
@@ -306,7 +308,9 @@ fun SettingsScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showClearScanHistoryDialog = false }) {
+                TextButton(onClick = {
+                    showClearScanHistoryDialog = false
+                }) {
                     Text("Cancel")
                 }
             }
@@ -330,7 +334,9 @@ fun SettingsScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showClearGeneratedHistoryDialog = false }) {
+                TextButton(onClick = {
+                    showClearGeneratedHistoryDialog = false
+                }) {
                     Text("Cancel")
                 }
             }
@@ -354,7 +360,9 @@ fun SettingsScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showClearAllDataDialog = false }) {
+                TextButton(onClick = {
+                    showClearAllDataDialog = false
+                }) {
                     Text("Cancel")
                 }
             }
@@ -660,7 +668,6 @@ private fun ChangelogContent() {
                 "Generated codes history management",
                 "Favorite items support",
                 "Dark mode and dynamic color theming",
-                "Haptic feedback controls",
                 "Share functionality for codes",
                 "100% offline - no internet required"
             )
@@ -914,7 +921,7 @@ private fun LicenseItem(
             .clickable {
                 val intent = android.content.Intent(
                     android.content.Intent.ACTION_VIEW,
-                    android.net.Uri.parse(url)
+                    url.toUri()
                 )
                 context.startActivity(intent)
             },
@@ -997,7 +1004,7 @@ private fun CreatorContent() {
                     onClick = {
                         val intent = android.content.Intent(
                             android.content.Intent.ACTION_VIEW,
-                            android.net.Uri.parse("https://rejowan.com")
+                            "https://rejowan.com".toUri()
                         )
                         context.startActivity(intent)
                     }
@@ -1011,7 +1018,7 @@ private fun CreatorContent() {
                     value = "kmrejowan@gmail.com",
                     onClick = {
                         val intent = android.content.Intent(android.content.Intent.ACTION_SENDTO).apply {
-                            data = android.net.Uri.parse("mailto:kmrejowan@gmail.com")
+                            data = "mailto:kmrejowan@gmail.com".toUri()
                         }
                         context.startActivity(intent)
                     }
@@ -1026,7 +1033,7 @@ private fun CreatorContent() {
                     onClick = {
                         val intent = android.content.Intent(
                             android.content.Intent.ACTION_VIEW,
-                            android.net.Uri.parse("https://github.com/ahmmedrejowan")
+                            "https://github.com/ahmmedrejowan".toUri()
                         )
                         context.startActivity(intent)
                     }
@@ -1041,7 +1048,7 @@ private fun CreatorContent() {
                     onClick = {
                         val intent = android.content.Intent(
                             android.content.Intent.ACTION_VIEW,
-                            android.net.Uri.parse("https://linkedin.com/in/ahmmedrejowan")
+                            "https://linkedin.com/in/ahmmedrejowan".toUri()
                         )
                         context.startActivity(intent)
                     }
@@ -1055,7 +1062,7 @@ private fun CreatorContent() {
                 .clickable {
                     val intent = android.content.Intent(
                         android.content.Intent.ACTION_VIEW,
-                        android.net.Uri.parse("https://rejowan.com")
+                        "https://rejowan.com".toUri()
                     )
                     context.startActivity(intent)
                 },
@@ -1189,7 +1196,7 @@ You should have received a copy of the GNU General Public License along with thi
             onClick = {
                 val intent = android.content.Intent(
                     android.content.Intent.ACTION_VIEW,
-                    android.net.Uri.parse("https://www.gnu.org/licenses/gpl-3.0.en.html")
+                    "https://www.gnu.org/licenses/gpl-3.0.en.html".toUri()
                 )
                 context.startActivity(intent)
             },

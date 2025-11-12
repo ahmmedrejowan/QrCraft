@@ -1,7 +1,6 @@
 package com.rejown.qrcraft.presentation.history.components
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Card
@@ -32,7 +30,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HistoryItem(
     content: String,
@@ -40,9 +37,7 @@ fun HistoryItem(
     format: String,
     timestamp: Long,
     isFavorite: Boolean,
-    isSelected: Boolean,
     onClicked: () -> Unit,
-    onLongPress: () -> Unit,
     onToggleFavorite: () -> Unit,
     modifier: Modifier = Modifier,
     title: String? = null,
@@ -51,19 +46,14 @@ fun HistoryItem(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .combinedClickable(
-                onClick = onClicked,
-                onLongClick = onLongPress
+            .clickable(
+                onClick = onClicked
             ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isSelected) 4.dp else 1.dp
+            defaultElevation = 1.dp
         ),
         colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) {
-                MaterialTheme.colorScheme.primaryContainer
-            } else {
-                MaterialTheme.colorScheme.surfaceContainerLow
-            }
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
         shape = RoundedCornerShape(12.dp)
     ) {
@@ -73,17 +63,6 @@ fun HistoryItem(
                 .padding(14.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Selection indicator
-            if (isSelected) {
-                Icon(
-                    imageVector = Icons.Default.CheckCircle,
-                    contentDescription = "Selected",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(22.dp)
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-            }
-
             // Content
             Column(
                 modifier = Modifier.weight(1f),

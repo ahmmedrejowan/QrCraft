@@ -52,7 +52,6 @@ fun ScanDetailScreen(
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val haptic = com.rejown.qrcraft.utils.rememberHapticFeedback()
     val viewModelState by (viewModel?.state?.collectAsState() ?: remember {
         MutableStateFlow(ScanHistoryDetailState()).asStateFlow()
     }.collectAsState())
@@ -106,7 +105,6 @@ fun ScanDetailScreen(
                                 onBack()
                             }
                         }
-                        haptic.strongImpact()
                     }
                 ) {
                     Text("Delete", color = MaterialTheme.colorScheme.error)
@@ -145,7 +143,6 @@ fun ScanDetailScreen(
                     if (!autoSave && viewModel != null) {
                         IconButton(onClick = {
                             viewModel.showDeleteDialog()
-                            haptic.lightClick()
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Delete,

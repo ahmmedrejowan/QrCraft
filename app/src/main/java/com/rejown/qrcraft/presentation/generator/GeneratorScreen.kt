@@ -35,7 +35,6 @@ import com.rejown.qrcraft.presentation.generator.components.CodePreview
 import com.rejown.qrcraft.presentation.generator.components.ContentTypeDropdown
 import com.rejown.qrcraft.presentation.generator.components.InputForm
 import com.rejown.qrcraft.presentation.generator.state.GeneratorEvent
-import com.rejown.qrcraft.utils.rememberHapticFeedback
 import org.koin.androidx.compose.koinViewModel
 import java.io.File
 import java.io.FileOutputStream
@@ -47,7 +46,6 @@ fun GeneratorScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
-    val haptic = rememberHapticFeedback()
 
     Column(
         modifier = modifier
@@ -69,7 +67,6 @@ fun GeneratorScreen(
             selectedType = state.selectedContentType,
             onTypeSelected = { type ->
                 viewModel.onEvent(GeneratorEvent.OnContentTypeSelected(type))
-                haptic.lightClick()
             }
         )
 
@@ -81,11 +78,9 @@ fun GeneratorScreen(
             selectedFormat = state.selectedBarcodeFormat,
             onTypeSelected = { type ->
                 viewModel.onEvent(GeneratorEvent.OnBarcodeTypeSelected(type))
-                haptic.lightClick()
             },
             onFormatSelected = { format ->
                 viewModel.onEvent(GeneratorEvent.OnBarcodeFormatSelected(format))
-                haptic.lightClick()
             }
         )
 
@@ -114,7 +109,6 @@ fun GeneratorScreen(
                     onClick = {
                         state.generatedCode?.bitmap?.let { bitmap ->
                             shareImage(context, bitmap)
-                            haptic.lightClick()
                         }
                     },
                     modifier = Modifier.weight(1f)
@@ -130,7 +124,6 @@ fun GeneratorScreen(
                 FilledTonalButton(
                     onClick = {
                         viewModel.onEvent(GeneratorEvent.OnSaveClicked)
-                        haptic.success()
                         Toast.makeText(
                             context,
                             "Saved to history",

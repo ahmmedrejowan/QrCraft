@@ -29,7 +29,6 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.rejown.qrcraft.utils.rememberHapticFeedback
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -46,7 +45,6 @@ fun CodeDetailScreen(
     val context = androidx.compose.ui.platform.LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    val haptic = rememberHapticFeedback()
 
     // Load code on first composition
     LaunchedEffect(codeId) {
@@ -86,7 +84,6 @@ fun CodeDetailScreen(
                                 onBack()
                             }
                         }
-                        haptic.strongImpact()
                     }
                 ) {
                     Text("Delete", color = MaterialTheme.colorScheme.error)
@@ -116,7 +113,6 @@ fun CodeDetailScreen(
                         }
                         context.startActivity(Intent.createChooser(intent, "Share Content"))
                         viewModel.hideShareBottomSheet()
-                        haptic.lightClick()
                     }
                 },
                 onShareQRCode = {
@@ -132,7 +128,6 @@ fun CodeDetailScreen(
                                 Intent.createChooser(shareIntent, "Share QR Code")
                             )
                         }
-                        haptic.lightClick()
                     }
                 }
             )
@@ -165,7 +160,6 @@ fun CodeDetailScreen(
                     IconButton(
                         onClick = {
                             viewModel.showDeleteDialog()
-                            haptic.lightClick()
                         },
                         enabled = state.code != null
                     ) {
@@ -180,7 +174,6 @@ fun CodeDetailScreen(
                     IconButton(
                         onClick = {
                             viewModel.toggleFavorite()
-                            haptic.lightClick()
                         },
                         enabled = state.code != null
                     ) {
@@ -261,23 +254,19 @@ fun CodeDetailScreen(
                         state = state,
                         onCopy = {
                             viewModel.copyContent()
-                            haptic.lightClick()
                         },
                         onShare = {
                             viewModel.showShareBottomSheet()
-                            haptic.lightClick()
                         },
                         onSave = {
                             scope.launch {
                                 viewModel.saveToGallery()
-                                haptic.success()
                             }
                         },
-                        onOpen = getOpenAction(code, context, scope, snackbarHostState, haptic),
+                        onOpen = getOpenAction(code, context, scope, snackbarHostState),
                         onEdit = onEdit?.let { editFn ->
                             {
                                 editFn(code.templateId)
-                                haptic.lightClick()
                             }
                         },
                         modifier = Modifier.padding(paddingValues)
@@ -292,8 +281,7 @@ private fun getOpenAction(
     code: com.rejown.qrcraft.data.local.database.entities.GeneratedCodeEntity,
     context: android.content.Context,
     scope: kotlinx.coroutines.CoroutineScope,
-    snackbarHostState: SnackbarHostState,
-    haptic: com.rejown.qrcraft.utils.HapticFeedback
+    snackbarHostState: SnackbarHostState
 ): (() -> Unit)? {
     val content = code.formattedContent
     val type = code.barcodeType.uppercase()
@@ -307,7 +295,6 @@ private fun getOpenAction(
                 try {
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(content))
                     context.startActivity(intent)
-                    haptic.lightClick()
                 } catch (e: Exception) {
                     scope.launch {
                         snackbarHostState.showSnackbar("Unable to open URL")
@@ -321,7 +308,6 @@ private fun getOpenAction(
                     val emailUri = if (content.startsWith("mailto:")) content else "mailto:$content"
                     val intent = Intent(Intent.ACTION_SENDTO, Uri.parse(emailUri))
                     context.startActivity(intent)
-                    haptic.lightClick()
                 } catch (e: Exception) {
                     scope.launch {
                         snackbarHostState.showSnackbar("Unable to open email")
@@ -335,7 +321,6 @@ private fun getOpenAction(
                     val telUri = if (content.startsWith("tel:")) content else "tel:$content"
                     val intent = Intent(Intent.ACTION_DIAL, Uri.parse(telUri))
                     context.startActivity(intent)
-                    haptic.lightClick()
                 } catch (e: Exception) {
                     scope.launch {
                         snackbarHostState.showSnackbar("Unable to open dialer")
@@ -352,7 +337,6 @@ private fun getOpenAction(
                     }
                     val intent = Intent(Intent.ACTION_SENDTO, Uri.parse(smsUri))
                     context.startActivity(intent)
-                    haptic.lightClick()
                 } catch (e: Exception) {
                     scope.launch {
                         snackbarHostState.showSnackbar("Unable to open messaging")

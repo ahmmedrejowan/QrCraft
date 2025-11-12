@@ -86,7 +86,6 @@ class SettingsViewModel(
                 // Reset preferences to defaults
                 themePreferences.setTheme("System")
                 themePreferences.setDynamicColor(false)
-                themePreferences.setHapticFeedback(true)
                 loadStats() // Refresh stats
                 _state.value = _state.value.copy(
                     isLoading = false,

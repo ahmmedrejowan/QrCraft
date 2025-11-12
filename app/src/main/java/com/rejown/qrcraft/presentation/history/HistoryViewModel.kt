@@ -36,9 +36,7 @@ class HistoryViewModel(
                     it.copy(
                         selectedTab = event.tab,
                         searchQuery = "",
-                        selectedFilter = null,
-                        selectedItems = emptySet(),
-                        isSelectionMode = false
+                        selectedFilter = null
                     )
                 }
             }
@@ -53,43 +51,8 @@ class HistoryViewModel(
                 applyFilter(event.filter)
             }
 
-            is HistoryEvent.OnItemClicked -> {
-                if (_state.value.isSelectionMode) {
-                    toggleItemSelection(event.id)
-                }
-                // Navigation handled in UI
-            }
-
-            is HistoryEvent.OnItemLongPressed -> {
-                toggleItemSelection(event.id)
-                if (!_state.value.isSelectionMode) {
-                    _state.update { it.copy(isSelectionMode = true) }
-                }
-            }
-
             is HistoryEvent.OnToggleFavorite -> {
                 toggleFavorite(event.id, event.isFavorite)
-            }
-
-            is HistoryEvent.OnDeleteItem -> {
-                deleteItem(event.id)
-            }
-
-            is HistoryEvent.OnDeleteSelected -> {
-                deleteSelectedItems()
-            }
-
-            is HistoryEvent.OnClearSelection -> {
-                _state.update {
-                    it.copy(
-                        selectedItems = emptySet(),
-                        isSelectionMode = false
-                    )
-                }
-            }
-
-            is HistoryEvent.OnDeleteAll -> {
-                deleteAllHistory()
             }
         }
     }
@@ -253,20 +216,6 @@ class HistoryViewModel(
         }
     }
 
-    private fun toggleItemSelection(id: Long) {
-        _state.update {
-            val newSelection = if (it.selectedItems.contains(id)) {
-                it.selectedItems - id
-            } else {
-                it.selectedItems + id
-            }
-            it.copy(
-                selectedItems = newSelection,
-                isSelectionMode = newSelection.isNotEmpty()
-            )
-        }
-    }
-
     private fun toggleFavorite(id: Long, isFavorite: Boolean) {
         viewModelScope.launch {
             try {
@@ -301,95 +250,4 @@ class HistoryViewModel(
         }
     }
 
-    private fun deleteItem(id: Long) {
-        viewModelScope.launch {
-            try {
-                // For ALL tab, we need to check which type of item it is
-                if (_state.value.selectedTab == HistoryTab.ALL) {
-                    // Check if it's in scanned history first
-                    val scannedItem = scanRepository.getHistoryById(id)
-                    if (scannedItem != null) {
-                        scanRepository.deleteScan(scannedItem)
-                    } else {
-                        // Must be in generated history
-                        val generatedItem = generatorRepository.getGeneratedById(id)
-                        generatedItem?.let { generatorRepository.deleteGenerated(it) }
-                    }
-                } else if (_state.value.selectedTab == HistoryTab.SCANNED) {
-                    val item = scanRepository.getHistoryById(id)
-                    item?.let { scanRepository.deleteScan(it) }
-                } else {
-                    val item = generatorRepository.getGeneratedById(id)
-                    item?.let { generatorRepository.deleteGenerated(it) }
-                }
-                Timber.d("Deleted item $id")
-            } catch (e: Exception) {
-                Timber.e(e, "Error deleting item")
-            }
-        }
-    }
-
-    private fun deleteSelectedItems() {
-        viewModelScope.launch {
-            try {
-                val ids = _state.value.selectedItems.toList()
-
-                if (_state.value.selectedTab == HistoryTab.ALL) {
-                    // For ALL tab, separate IDs by type
-                    val scannedIds = mutableListOf<Long>()
-                    val generatedIds = mutableListOf<Long>()
-
-                    ids.forEach { id ->
-                        // Check which repository contains this ID
-                        val scannedItem = scanRepository.getHistoryById(id)
-                        if (scannedItem != null) {
-                            scannedIds.add(id)
-                        } else {
-                            generatedIds.add(id)
-                        }
-                    }
-
-                    if (scannedIds.isNotEmpty()) {
-                        scanRepository.deleteByIds(scannedIds)
-                    }
-                    if (generatedIds.isNotEmpty()) {
-                        generatorRepository.deleteByIds(generatedIds)
-                    }
-                } else if (_state.value.selectedTab == HistoryTab.SCANNED) {
-                    scanRepository.deleteByIds(ids)
-                } else {
-                    generatorRepository.deleteByIds(ids)
-                }
-
-                _state.update {
-                    it.copy(
-                        selectedItems = emptySet(),
-                        isSelectionMode = false
-                    )
-                }
-                Timber.d("Deleted ${ids.size} items")
-            } catch (e: Exception) {
-                Timber.e(e, "Error deleting selected items")
-            }
-        }
-    }
-
-    private fun deleteAllHistory() {
-        viewModelScope.launch {
-            try {
-                if (_state.value.selectedTab == HistoryTab.ALL) {
-                    // Delete both
-                    scanRepository.deleteAll()
-                    generatorRepository.deleteAll()
-                } else if (_state.value.selectedTab == HistoryTab.SCANNED) {
-                    scanRepository.deleteAll()
-                } else {
-                    generatorRepository.deleteAll()
-                }
-                Timber.d("Deleted all history")
-            } catch (e: Exception) {
-                Timber.e(e, "Error deleting all history")
-            }
-        }
-    }
 }
