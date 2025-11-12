@@ -8,9 +8,14 @@ import android.os.VibratorManager
 import android.view.HapticFeedbackConstants
 import android.view.View
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import com.rejown.qrcraft.data.local.preferences.ThemePreferences
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 
 /**
@@ -28,10 +33,19 @@ class HapticFeedback(private val context: Context) {
         }
     }
 
+    private val themePreferences by lazy { ThemePreferences(context) }
+
+    private fun isEnabled(): Boolean {
+        return runBlocking {
+            themePreferences.isHapticFeedbackEnabled().first()
+        }
+    }
+
     /**
      * Light click feedback - for button presses, chip selections
      */
     fun lightClick(view: View? = null) {
+        if (!isEnabled()) return
         view?.performHapticFeedback(
             HapticFeedbackConstants.CLOCK_TICK,
             HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
@@ -42,6 +56,7 @@ class HapticFeedback(private val context: Context) {
      * Medium click feedback - for switches, toggles
      */
     fun mediumClick(view: View? = null) {
+        if (!isEnabled()) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             view?.performHapticFeedback(
                 HapticFeedbackConstants.CONFIRM,
@@ -56,6 +71,7 @@ class HapticFeedback(private val context: Context) {
      * Strong impact - for long press, delete confirmations
      */
     fun strongImpact(view: View? = null) {
+        if (!isEnabled()) return
         view?.performHapticFeedback(
             HapticFeedbackConstants.LONG_PRESS,
             HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
@@ -67,6 +83,7 @@ class HapticFeedback(private val context: Context) {
      * Used for: scan success, save success, generate success
      */
     fun success() {
+        if (!isEnabled()) return
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 val effect = VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
@@ -88,6 +105,7 @@ class HapticFeedback(private val context: Context) {
      * Used for: scan errors, generation errors, validation errors
      */
     fun error() {
+        if (!isEnabled()) return
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 val timings = longArrayOf(0, 50, 50, 50)
@@ -108,6 +126,7 @@ class HapticFeedback(private val context: Context) {
      * Used for: history item selection, multi-select mode
      */
     fun selection(view: View? = null) {
+        if (!isEnabled()) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             view?.performHapticFeedback(
                 HapticFeedbackConstants.GESTURE_START,
@@ -123,6 +142,7 @@ class HapticFeedback(private val context: Context) {
      * Used for: validation errors, unavailable features
      */
     fun reject() {
+        if (!isEnabled()) return
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 val effect = VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK)

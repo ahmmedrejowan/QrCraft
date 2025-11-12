@@ -53,8 +53,8 @@ fun HistoryScreen(
             // Title
             Text(
                 text = "History",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
             )
 

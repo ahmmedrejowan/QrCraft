@@ -6,6 +6,7 @@ import com.rejown.qrcraft.presentation.generator.details.CodeDetailViewModel
 import com.rejown.qrcraft.presentation.history.HistoryViewModel
 import com.rejown.qrcraft.presentation.scanner.ScannerViewModel
 import com.rejown.qrcraft.presentation.scanner.details.ScanHistoryDetailViewModel
+import com.rejown.qrcraft.presentation.settings.SettingsViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
@@ -29,4 +30,7 @@ val viewModelModule = module {
 
     // History
     viewModel { HistoryViewModel(get(), get()) }
+
+    // Settings
+    viewModel { SettingsViewModel(get(), get(), get()) }
 }
