@@ -94,9 +94,7 @@ dependencies {
     // DataStore
     implementation(libs.androidx.datastore.preferences)
 
-    // Networking
-    implementation(libs.retrofit)
-    implementation(libs.okhttp)
+    // Serialization
     implementation(libs.kotlinx.serialization.json)
 
     // Image Loading

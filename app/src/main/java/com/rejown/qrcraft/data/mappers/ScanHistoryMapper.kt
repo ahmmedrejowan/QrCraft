@@ -23,8 +23,7 @@ fun ScanHistoryEntity.toDomain(): ScanHistory {
             } catch (e: Exception) {
                 null
             }
-        },
-        imagePath = imagePath
+        }
     )
 }
 
@@ -37,8 +36,7 @@ fun ScanHistory.toEntity(): ScanHistoryEntity {
         contentType = contentType.name,
         timestamp = timestamp,
         isFavorite = isFavorite,
-        metadata = metadata?.let { Json.encodeToString(it) },
-        imagePath = imagePath
+        metadata = metadata?.let { Json.encodeToString(it) }
     )
 }
 

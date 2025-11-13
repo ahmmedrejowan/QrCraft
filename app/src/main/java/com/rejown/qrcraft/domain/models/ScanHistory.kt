@@ -8,6 +8,5 @@ data class ScanHistory(
     val contentType: ContentType,
     val timestamp: Long,
     val isFavorite: Boolean = false,
-    val metadata: Map<String, String>? = null,
-    val imagePath: String? = null
+    val metadata: Map<String, String>? = null
 )

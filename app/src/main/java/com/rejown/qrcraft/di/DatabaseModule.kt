@@ -14,6 +14,7 @@ val databaseModule = module {
             QRCraftDatabase::class.java,
             "qrcraft_database"
         )
+            .addMigrations(com.rejown.qrcraft.data.local.database.MIGRATION_1_2)
             .fallbackToDestructiveMigration(false)
             .build()
         timber.log.Timber.tag("QC DatabaseModule").d("init - Room database created successfully")

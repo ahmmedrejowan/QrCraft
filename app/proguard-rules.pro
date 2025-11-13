@@ -9,19 +9,6 @@
 # Keep custom exceptions for better error tracking
 -keep public class * extends java.lang.Exception
 
-# ===== Retrofit & OkHttp (if used) =====
--keepattributes Signature, InnerClasses, EnclosingMethod
--keepattributes RuntimeVisibleAnnotations, RuntimeVisibleParameterAnnotations
--keepattributes AnnotationDefault
-
--keepclassmembers,allowshrinking,allowobfuscation interface * {
-    @retrofit2.http.* <methods>;
-}
-
--dontwarn org.bouncycastle.jsse.**
--dontwarn org.conscrypt.*
--dontwarn org.openjsse.**
-
 # ===== Kotlinx Serialization =====
 -keepattributes *Annotation*, InnerClasses
 -dontnote kotlinx.serialization.**

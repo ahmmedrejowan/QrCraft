@@ -59,16 +59,6 @@ data class GeneratedCodeEntity(
     @ColumnInfo(name = "margin")
     val margin: Int,
 
-    // Generated Image
-    @ColumnInfo(name = "image_path")
-    val imagePath: String,
-
-    @ColumnInfo(name = "image_width")
-    val imageWidth: Int,
-
-    @ColumnInfo(name = "image_height")
-    val imageHeight: Int,
-
     // Timestamps
     @ColumnInfo(name = "created_at")
     val createdAt: Long,

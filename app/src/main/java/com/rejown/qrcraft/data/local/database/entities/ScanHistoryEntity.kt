@@ -37,8 +37,5 @@ data class ScanHistoryEntity(
     val isFavorite: Boolean = false,
 
     @ColumnInfo(name = "metadata")
-    val metadata: String? = null, // JSON for additional data
-
-    @ColumnInfo(name = "image_path")
-    val imagePath: String? = null // Optional: saved scan image
+    val metadata: String? = null // JSON for additional data
 )

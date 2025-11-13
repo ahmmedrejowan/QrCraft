@@ -123,8 +123,7 @@ class ScannerViewModel(
                     contentType = result.contentType,
                     timestamp = result.timestamp,
                     isFavorite = false,
-                    metadata = result.metadata,
-                    imagePath = null
+                    metadata = result.metadata
                 )
 
                 val insertedId = scanRepository.insertScan(history)

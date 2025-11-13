@@ -389,24 +389,10 @@ class CreationViewModel(
                     generatorRepository.getGeneratedById(currentState.editingCodeId!!)
                 } else null
 
-                // Save bitmap to internal storage (use existing filename if editing)
-                val fileName = if (isEditMode && existingCode != null) {
-                    // Update existing file
-                    existingCode.imagePath
-                } else {
-                    // Create new file
-                    "qrcode_${timestamp}.png"
-                }
-
-                val file = File(context.filesDir, fileName)
-                FileOutputStream(file).use { out ->
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
-                }
-
                 // Format content
                 val formattedContent = template.formatContentProvider(currentState.fieldValues)
 
-                // Create or update domain model
+                // Create or update domain model (no file storage needed)
                 val codeData = if (isEditMode && existingCode != null) {
                     // Update existing code
                     existingCode.copy(
@@ -423,9 +409,6 @@ class CreationViewModel(
                         size = currentState.customization.size,
                         errorCorrection = currentState.customization.errorCorrectionLevel,
                         margin = currentState.customization.margin,
-                        imagePath = fileName,
-                        imageWidth = bitmap.width,
-                        imageHeight = bitmap.height,
                         updatedAt = timestamp
                         // Preserve: createdAt, isFavorite, scanCount
                     )
@@ -445,9 +428,6 @@ class CreationViewModel(
                         size = currentState.customization.size,
                         errorCorrection = currentState.customization.errorCorrectionLevel,
                         margin = currentState.customization.margin,
-                        imagePath = fileName,
-                        imageWidth = bitmap.width,
-                        imageHeight = bitmap.height,
                         createdAt = timestamp,
                         updatedAt = timestamp,
                         isFavorite = false,

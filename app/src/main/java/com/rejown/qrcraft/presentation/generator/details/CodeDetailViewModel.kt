@@ -2,12 +2,13 @@ package com.rejown.qrcraft.presentation.generator.details
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rejown.qrcraft.domain.models.CodeCustomization
 import com.rejown.qrcraft.domain.repository.GeneratorRepository
+import com.rejown.qrcraft.utils.generator.CodeGenerator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,14 +35,14 @@ class CodeDetailViewModel(
             try {
                 val code = generatorRepository.getGeneratedById(codeId)
                 if (code != null) {
-                    // Load bitmap from file
-                    val bitmap = loadBitmapFromFile(code.imagePath)
+                    // Regenerate bitmap from stored data
+                    val bitmap = generateBitmapFromCode(code)
                     _state.update {
                         it.copy(
                             code = code,
                             bitmap = bitmap,
                             isLoading = false,
-                            error = if (bitmap == null) "Failed to load image" else null
+                            error = if (bitmap == null) "Failed to generate QR code" else null
                         )
                     }
                 } else {
@@ -64,18 +65,23 @@ class CodeDetailViewModel(
         }
     }
 
-    private suspend fun loadBitmapFromFile(fileName: String): Bitmap? {
+    private suspend fun generateBitmapFromCode(code: com.rejown.qrcraft.domain.models.GeneratedCodeData): Bitmap? {
         return withContext(Dispatchers.IO) {
             try {
-                val file = File(context.filesDir, fileName)
-                if (file.exists()) {
-                    BitmapFactory.decodeFile(file.absolutePath)
-                } else {
-                    Timber.w("Image file not found: $fileName")
-                    null
-                }
+                val customization = CodeCustomization(
+                    foregroundColor = code.foregroundColor,
+                    backgroundColor = code.backgroundColor,
+                    size = code.size,
+                    errorCorrectionLevel = code.errorCorrection ?: com.rejown.qrcraft.domain.models.ErrorCorrectionLevel.HIGH,
+                    margin = code.margin
+                )
+                CodeGenerator.generateCode(
+                    content = code.formattedContent,
+                    format = code.barcodeFormat,
+                    customization = customization
+                )
             } catch (e: Exception) {
-                Timber.e(e, "Failed to load bitmap from file")
+                Timber.e(e, "Failed to generate bitmap from code")
                 null
             }
         }
@@ -121,12 +127,6 @@ class CodeDetailViewModel(
 
         return withContext(Dispatchers.IO) {
             try {
-                // Delete image file
-                val file = File(context.filesDir, code.imagePath)
-                if (file.exists()) {
-                    file.delete()
-                }
-
                 // Delete from database
                 generatorRepository.deleteGenerated(code)
                 _state.update {
