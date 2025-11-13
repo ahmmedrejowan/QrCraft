@@ -35,6 +35,6 @@ class QRCraftApplication : Application() {
             )
         }
 
-        Timber.tag("QRCraft QRCraftApplication").e("onCreate - Application initialized successfully")
+        Timber.tag("QC QRCraftApplication").d("onCreate - Application initialized successfully")
     }
 }

@@ -46,7 +46,7 @@ class SnackbarManager(
             duration = SnackbarDuration.Long,
             onAction = onAction
         )
-        Timber.e("Snackbar error: $message")
+        Timber.tag("QC SnackbarManager").e("Snackbar error: $message")
     }
 
     /**
@@ -123,7 +123,7 @@ class SnackbarManager(
                     }
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Failed to show snackbar: $message")
+                Timber.tag("QC SnackbarManager").e(e, "Failed to show snackbar: $message")
             }
         }
     }

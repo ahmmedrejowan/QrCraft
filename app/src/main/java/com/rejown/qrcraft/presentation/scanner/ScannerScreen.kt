@@ -126,14 +126,14 @@ fun ScannerScreen(
 
     // Navigate to detail when scan is successful (only once per success)
     LaunchedEffect(state.scanningState) {
-        timber.log.Timber.tag("QRCraft ScannerScreen").e("LaunchedEffect - Triggered with state: ${state.scanningState::class.simpleName}")
+        timber.log.Timber.tag("QC ScannerScreen").d("LaunchedEffect - Triggered with state: ${state.scanningState::class.simpleName}")
         if (state.scanningState is com.rejown.qrcraft.presentation.scanner.state.ScanningState.Success) {
             val result = (state.scanningState as com.rejown.qrcraft.presentation.scanner.state.ScanningState.Success).result
-            timber.log.Timber.tag("QRCraft ScannerScreen").e("LaunchedEffect - Success state detected, navigating to detail. Result: ${result.displayValue}")
+            timber.log.Timber.tag("QC ScannerScreen").d("LaunchedEffect - Success state detected, navigating to detail. Result: ${result.displayValue}")
             onNavigateToDetail()
-            timber.log.Timber.tag("QRCraft ScannerScreen").e("LaunchedEffect - Navigation to detail completed")
+            timber.log.Timber.tag("QC ScannerScreen").d("LaunchedEffect - Navigation to detail completed")
         } else if (state.scanningState is com.rejown.qrcraft.presentation.scanner.state.ScanningState.Error) {
-            timber.log.Timber.tag("QRCraft ScannerScreen").e("LaunchedEffect - Error state detected")
+            timber.log.Timber.tag("QC ScannerScreen").d("LaunchedEffect - Error state detected")
         }
     }
 

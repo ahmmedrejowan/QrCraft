@@ -34,7 +34,7 @@ fun BottomNavHost(
     ) {
         // ============ SCANNER SCREEN ============
         composable<Screen.Scanner> {
-            Timber.tag("QRCraft BottomNavHost").e("composable - Composing Scanner screen")
+            Timber.tag("QC BottomNavHost").d("composable - Composing Scanner screen")
 
             // Get the scanner ViewModel to access scan result
             val scannerViewModel: ScannerViewModel = koinInject()
@@ -42,13 +42,13 @@ fun BottomNavHost(
             ScannerScreen(
                 viewModel = scannerViewModel,
                 onNavigateToDetail = {
-                    Timber.tag("QRCraft BottomNavHost").e("onNavigateToDetail - Callback triggered")
+                    Timber.tag("QC BottomNavHost").d("onNavigateToDetail - Callback triggered")
 
                     // Get the scan result from the ViewModel state
                     val currentState = scannerViewModel.state.value
                     if (currentState.scanningState is com.rejown.qrcraft.presentation.scanner.state.ScanningState.Success) {
                         val result = (currentState.scanningState as com.rejown.qrcraft.presentation.scanner.state.ScanningState.Success).result
-                        Timber.tag("QRCraft BottomNavHost").e("onNavigateToDetail - Navigating with data: ${result.displayValue}")
+                        Timber.tag("QC BottomNavHost").d("onNavigateToDetail - Navigating with data: ${result.displayValue}")
 
                         parentNavController.navigate(
                             Screen.ScanDetail(
@@ -59,9 +59,9 @@ fun BottomNavHost(
                                 timestamp = result.timestamp
                             )
                         )
-                        Timber.tag("QRCraft BottomNavHost").e("onNavigateToDetail - Navigation executed")
+                        Timber.tag("QC BottomNavHost").d("onNavigateToDetail - Navigation executed")
                     } else {
-                        Timber.tag("QRCraft BottomNavHost").e("onNavigateToDetail - ERROR: State is not Success!")
+                        Timber.tag("QC BottomNavHost").e("onNavigateToDetail - ERROR: State is not Success!")
                     }
                 }
             )

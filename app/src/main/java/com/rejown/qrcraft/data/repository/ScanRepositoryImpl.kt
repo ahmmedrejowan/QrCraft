@@ -31,13 +31,13 @@ class ScanRepositoryImpl(
     }
 
     override suspend fun insertScan(history: ScanHistoryEntity): Long {
-        Timber.tag("QRCraft ScanRepositoryImpl").e("insertScan - Called with content: ${history.content}")
+        Timber.tag("QC ScanRepositoryImpl").d("insertScan - Called with content: ${history.content}")
         return try {
             val id = scanHistoryDao.insert(history)
-            Timber.tag("QRCraft ScanRepositoryImpl").e("insertScan - Insert successful, ID: $id")
+            Timber.tag("QC ScanRepositoryImpl").d("insertScan - Insert successful, ID: $id")
             id
         } catch (e: Exception) {
-            Timber.tag("QRCraft ScanRepositoryImpl").e(e, "insertScan - Insert failed")
+            Timber.tag("QC ScanRepositoryImpl").e(e, "insertScan - Insert failed")
             throw e
         }
     }

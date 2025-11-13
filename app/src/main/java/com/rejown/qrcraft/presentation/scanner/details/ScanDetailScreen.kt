@@ -48,7 +48,7 @@ fun ScanDetailScreen(
     autoSave: Boolean = true, // Auto-save for fresh scans, false for history items
     viewModel: ScanHistoryDetailViewModel? = null // ViewModel for history items (with delete)
 ) {
-    timber.log.Timber.tag("QRCraft ScanDetailScree").e("composable - Composing with result: ${scanResult.displayValue}, type: ${scanResult.contentType}, autoSave: $autoSave")
+    timber.log.Timber.tag("QC ScanDetailScree").d("composable - Composing with result: ${scanResult.displayValue}, type: ${scanResult.contentType}, autoSave: $autoSave")
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -63,7 +63,7 @@ fun ScanDetailScreen(
     // This prepares the scanner for the next scan right away
     if (autoSave) {
         LaunchedEffect(Unit) {
-            timber.log.Timber.tag("QRCraft ScanDetailScree").e("LaunchedEffect - Resetting scanner to Scanning (preparing for next scan)")
+            timber.log.Timber.tag("QC ScanDetailScree").d("LaunchedEffect - Resetting scanner to Scanning (preparing for next scan)")
             scannerViewModel.onEvent(com.rejown.qrcraft.presentation.scanner.state.ScannerEvent.StartScanning)
         }
     }
@@ -71,22 +71,22 @@ fun ScanDetailScreen(
     // Auto-save to database in the background for fresh scans (not for history items)
     if (autoSave) {
         LaunchedEffect(scanResult) {
-            timber.log.Timber.tag("QRCraft ScanDetailScree").e("LaunchedEffect - Auto-saving scan to database via ViewModel")
+            timber.log.Timber.tag("QC ScanDetailScree").d("LaunchedEffect - Auto-saving scan to database via ViewModel")
             val savedId = scannerViewModel.saveToHistory(scanResult)
-            timber.log.Timber.tag("QRCraft ScanDetailScree").e("LaunchedEffect - Scan saved with ID: $savedId")
+            timber.log.Timber.tag("QC ScanDetailScree").d("LaunchedEffect - Scan saved with ID: $savedId")
         }
     }
 
     // Handle device back button/gesture
     BackHandler {
-        timber.log.Timber.tag("QRCraft ScanDetailScree").e("BackHandler - Device back triggered")
+        timber.log.Timber.tag("QC ScanDetailScree").d("BackHandler - Device back triggered")
         onBack()
     }
 
     DisposableEffect(Unit) {
-        timber.log.Timber.tag("QRCraft ScanDetailScree").e("DisposableEffect - Screen entered")
+        timber.log.Timber.tag("QC ScanDetailScree").d("DisposableEffect - Screen entered")
         onDispose {
-            timber.log.Timber.tag("QRCraft ScanDetailScree").e("DisposableEffect - Screen disposed")
+            timber.log.Timber.tag("QC ScanDetailScree").d("DisposableEffect - Screen disposed")
         }
     }
 
@@ -677,7 +677,7 @@ private fun generateQRCode(content: String, format: com.rejown.qrcraft.domain.mo
 
         bitmap
     } catch (e: Exception) {
-        timber.log.Timber.tag("QRCraft ScanDetailScree").e(e, "generateQRCode - Failed to generate QR code")
+        timber.log.Timber.tag("QC ScanDetailScree").e(e, "generateQRCode - Failed to generate QR code")
         null
     }
 }

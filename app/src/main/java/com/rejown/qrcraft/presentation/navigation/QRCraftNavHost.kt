@@ -88,7 +88,7 @@ fun QRCraftNavHost(
 
         composable<Screen.ScanDetail> { backStackEntry ->
             val scanDetail = backStackEntry.toRoute<Screen.ScanDetail>()
-            timber.log.Timber.tag("QRCraft QRCraftNavHost").e("composable - ScanDetail with data: ${scanDetail.displayValue}")
+            timber.log.Timber.tag("QC QRCraftNavHost").d("composable - ScanDetail with data: ${scanDetail.displayValue}")
 
             // Reconstruct ScanResult from navigation arguments
             val scanResult = com.rejown.qrcraft.domain.models.ScanResult(
@@ -102,7 +102,7 @@ fun QRCraftNavHost(
             ScanDetailScreen(
                 scanResult = scanResult,
                 onBack = {
-                    timber.log.Timber.tag("QRCraft QRCraftNavHost").e("onBack - Back pressed from ScanDetail")
+                    timber.log.Timber.tag("QC QRCraftNavHost").d("onBack - Back pressed from ScanDetail")
                     navController.popBackStack()
                 }
             )
