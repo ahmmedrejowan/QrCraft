@@ -18,6 +18,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Message
+import androidx.compose.material.icons.automirrored.filled.Note
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.automirrored.filled.Subject
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -437,8 +441,8 @@ private fun CodeDetailContent(
                     type.contains("PHONE") || type.contains("TEL") || content.startsWith("tel:") ->
                         Icons.Default.Phone to "Call"
                     type.contains("SMS") || content.startsWith("sms:") ->
-                        Icons.Default.Message to "Message"
-                    else -> Icons.Default.OpenInNew to "Open"
+                        Icons.AutoMirrored.Filled.Message to "Message"
+                    else -> Icons.AutoMirrored.Filled.OpenInNew to "Open"
                 }
 
                 Button(
@@ -578,7 +582,7 @@ private fun ContentSection(content: String) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Default.Subject,
+                    imageVector = Icons.AutoMirrored.Filled.Subject,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)
@@ -664,7 +668,7 @@ private fun NoteSection(note: String) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Default.Note,
+                    imageVector = Icons.AutoMirrored.Filled.Note,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(18.dp)

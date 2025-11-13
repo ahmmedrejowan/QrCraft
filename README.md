@@ -18,56 +18,27 @@
 
 ---
 
-## 📱 Features
+## Features
 
-### Scanner Features
-- **Real-time Scanning** - Fast and accurate QR code and barcode detection
-- **Multiple Format Support** - QR Code, EAN-13, EAN-8, UPC-A, UPC-E, Code 39, Code 93, Code 128, ITF, Codabar, Data Matrix, Aztec, PDF417
-- **Smart Content Detection** - Automatically detects URLs, emails, phone numbers, WiFi credentials, and more
-- **Gallery Import** - Scan QR codes from images in your gallery
-- **Flashlight Control** - Toggle flashlight for scanning in low light
-- **Scan History** - Keep track of all your scans with timestamps
-- **Favorites** - Mark important scans for quick access
-- **Export & Share** - Share scan results or export history
-
-### Generator Features
-- **26 Professional Templates** including:
-  - 📝 **General & Personal**: Plain Text, Numbers, Custom Data
-  - 📞 **Communication**: Phone, Email, SMS, Contact (vCard), WhatsApp
-  - 🌐 **Social & Web**: URL, Social Profiles, WiFi, YouTube
-  - 📍 **Location & Events**: Geo Location, Calendar Event, Google Maps
-  - 💼 **Business**: Business Card, Digital Resume, Crypto Wallet, Payment Links
-  - 📦 **Product & Inventory**: Product Barcode, Product QR, Inventory Tags
-  - 📄 **Documents**: PDF Links, App Downloads, File Sharing
-  - 🎟️ **Tickets & Passes**: Event Tickets, Boarding Passes, Coupons
-
-- **Advanced Customization**:
-  - Multiple barcode format support (QR Code, EAN-13, Code 128, Data Matrix, etc.)
-  - Custom colors (foreground & background)
-  - Adjustable size and margin
-  - Error correction levels (Low, Medium, Quartile, High)
-
-- **Smart Input Validation** - Real-time validation for URLs, emails, phone numbers
-- **History Management** - All generated codes saved with metadata
-- **Export Options** - Save to gallery, share, or export as PNG
-
-### Design & UX
-- **Modern Material 3 Design** - Beautiful, intuitive interface
-- **Dark Mode Support** - System-based or manual theme switching
-- **Dynamic Colors** - Android 12+ Material You support
-- **Smooth Animations** - Polished transitions and haptic feedback
-- **Onboarding Experience** - First-time user guide
-- **100% Offline** - No internet required, complete privacy
+- **Fast Scanning** - Real-time QR code and barcode detection with 13+ format support
+- **26 Professional Templates** - Generate codes for text, URLs, contacts, WiFi, events, payments, and more
+- **Advanced Customization** - Custom colors, sizes, margins, and error correction levels
+- **Smart Detection** - Automatic content recognition (URLs, emails, phone numbers, WiFi)
+- **History & Favorites** - Track all scans and generations with timestamps
+- **Gallery Import** - Scan QR codes from existing images
+- **Export & Share** - Save to gallery or share results
+- **Material 3 Design** - Modern UI with dark mode and dynamic colors
+- **100% Offline** - Complete privacy, no internet required
 
 ---
 
-## 📸 Screenshots
+## Screenshots
 
 *Coming soon - Screenshots will be added in the next update*
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 QRCraft follows **Clean Architecture** principles with **MVVM** pattern:
 
@@ -114,7 +85,7 @@ app/
 
 ---
 
-## 📋 Requirements
+## Requirements
 
 - **Minimum SDK**: API 24 (Android 7.0 Nougat)
 - **Target SDK**: API 36 (Android 15)
@@ -125,55 +96,39 @@ app/
 - **Java**: 17
 
 ### Permissions
-- `CAMERA` - For QR code and barcode scanning
-- `VIBRATE` - For haptic feedback on successful scans
+- `CAMERA` - Required for QR code and barcode scanning
 
 **Note:** This app is 100% offline and does not require internet permission.
 
 ---
 
-## 🚀 Getting Started
+## Download
+![GitHub Release](https://img.shields.io/github/v/release/ahmmedrejowan/QRCraft)
 
-### Prerequisites
-- Android Studio Ladybug (2024.2.1) or newer
-- JDK 17 or newer
-- Android SDK with API 36
+You can download the latest APK from here
 
-### Building the Project
+<a href="https://github.com/ahmmedrejowan/QRCraft/releases/download/1.0.0/QRCraft.1.0.0.apk">
+<img src="https://raw.githubusercontent.com/ahmmedrejowan/MultiAppUninstaller/master/files/get.png" width="224px" align="center"/>
+</a>
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/ahmmedrejowan/QRCraft.git
-   cd QRCraft
-   ```
-
-2. **Open in Android Studio**
-   - Open Android Studio
-   - Select "Open an Existing Project"
-   - Navigate to the cloned directory
-
-3. **Sync Gradle**
-   - Android Studio will automatically sync Gradle
-   - Wait for dependencies to download
-
-4. **Build & Run**
-   - Connect an Android device or start an emulator
-   - Click "Run" (Shift + F10) or use:
-   ```bash
-   ./gradlew assembleDebug
-   ```
-
-### Generate Release APK
-
-```bash
-./gradlew assembleRelease
-```
-
-The APK will be generated at: `app/build/outputs/apk/release/`
+Check out the [releases](https://github.com/ahmmedrejowan/QRCraft/releases) section for more details.
 
 ---
 
-## 🧪 Testing
+## Build & Run
+To build and run the project, follow these steps:
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/ahmmedrejowan/QRCraft.git
+   ```
+2. Open the project in Android Studio.
+3. Sync the project with Gradle files.
+4. Connect your Android device or start an emulator.
+5. Click on the "Run" button in Android Studio to build and run the app.
+
+---
+
+## Testing
 
 ```bash
 # Run unit tests
@@ -187,76 +142,7 @@ The APK will be generated at: `app/build/outputs/apk/release/`
 
 ---
 
-## 📦 Dependencies
-
-### Core
-- AndroidX Core KTX
-- AndroidX Lifecycle Runtime
-- AndroidX Activity Compose
-
-### UI
-- Jetpack Compose BOM (2024.12.01)
-- Material 3
-- Material Icons Extended
-- Compose UI Tooling
-- Google Fonts (Compose)
-
-### Navigation
-- Navigation Compose
-
-### Dependency Injection
-- Koin for Android
-- Koin for Compose
-
-### Database
-- Room Runtime
-- Room KTX
-- Room Compiler (KSP)
-
-### Camera & ML
-- CameraX (Camera2, Lifecycle, View)
-- ML Kit Barcode Scanning
-
-### Barcode Generation
-- ZXing Core
-- ZXing Android Embedded
-
-### Storage
-- DataStore Preferences
-
-### Image Loading
-- Coil Compose
-
-### Utilities
-- Timber (Logging)
-- Kotlin Serialization JSON
-- Splash Screen API
-
-### Testing
-- JUnit
-- AndroidX Test (JUnit, Espresso)
-
----
-
-## 🗺️ Roadmap
-
-### v1.1 (Planned)
-- [ ] Batch QR code generation
-- [ ] QR code customization (logo embedding)
-- [ ] Export/Import settings and history
-- [ ] Advanced search and filtering
-- [ ] Scan statistics and analytics
-
-### v1.2 (Future)
-- [ ] Cloud backup (optional)
-- [ ] Multi-language support
-- [ ] QR code templates marketplace
-- [ ] Batch scanning mode
-- [ ] Widget support
-
----
-
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
 
@@ -278,21 +164,20 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 
 ---
 
-## 📄 License
+## License
 
-This project is licensed under the **GNU General Public License v3.0** - see the [LICENSE](LICENSE) file for details.
+```
+Copyright (C) 2025 K M Rejowan Ahmmed
 
-### What this means:
-- ✅ You can use this code for commercial purposes
-- ✅ You can modify and distribute this code
-- ✅ You can use this code privately
-- ⚠️ You must disclose the source code of your modifications
-- ⚠️ You must use the same GPL v3 license
-- ⚠️ You must document your changes
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+```
 ---
 
-## 👨‍💻 Author
+## Author
 
 **K M Rejowan Ahmmed**
 
@@ -301,7 +186,7 @@ This project is licensed under the **GNU General Public License v3.0** - see the
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - [ZXing](https://github.com/zxing/zxing) - Barcode generation and scanning
 - [Google ML Kit](https://developers.google.com/ml-kit/vision/barcode-scanning) - Fast barcode scanning
@@ -311,42 +196,16 @@ This project is licensed under the **GNU General Public License v3.0** - see the
 
 ---
 
-## 📝 Changelog
+## Changelog
 
 ### v1.0.0 (2025-01-13) - Initial Release
-- ✨ Real-time QR code and barcode scanning
-- ✨ 26 professional code generation templates
-- ✨ Multiple barcode format support
-- ✨ Scan and generation history
-- ✨ Favorites management
-- ✨ Material 3 design with dark mode
-- ✨ 100% offline functionality
-- ✨ Export and share capabilities
+-  Real-time QR code and barcode scanning
+-  26 professional code generation templates
+-  Multiple barcode format support
+-  Scan and generation history
+-  Favorites management
+-  Material 3 design with dark mode
+-  100% offline functionality
 
 ---
 
-## ⚠️ Beta Disclaimer
-
-This is a **beta release**. While the app is fully functional, some features are still being polished:
-- Test coverage is being developed
-- Some edge cases may not be handled
-- Performance optimizations ongoing
-
-Please report any issues on the [GitHub Issues](https://github.com/ahmmedrejowan/QRCraft/issues) page.
-
----
-
-## 💡 Support
-
-If you find this project useful, please consider:
-- ⭐ Starring the repository
-- 🐛 Reporting bugs and issues
-- 💬 Suggesting new features
-- 🔀 Contributing code improvements
-
----
-
-<div align="center">
-  <p>Made with ❤️ and Kotlin</p>
-  <p>© 2025 K M Rejowan Ahmmed</p>
-</div>

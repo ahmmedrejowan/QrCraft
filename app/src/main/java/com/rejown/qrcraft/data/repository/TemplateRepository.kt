@@ -1,6 +1,7 @@
 package com.rejown.qrcraft.data.repository
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.*
 import com.rejown.qrcraft.domain.models.*
 
@@ -324,7 +325,7 @@ object TemplateRepository {
         id = "whatsapp",
         name = "WhatsApp",
         description = "Direct WhatsApp chat link",
-        icon = Icons.Default.Chat,
+        icon = Icons.AutoMirrored.Filled.Chat,
         category = TemplateCategory.COMMUNICATION,
         defaultFormat = BarcodeFormat.QR_CODE,
         allowedFormats = listOf(

@@ -1,6 +1,7 @@
 package com.rejown.qrcraft.domain.models
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.ConfirmationNumber
@@ -8,7 +9,6 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.FileCopy
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.Message
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.ui.graphics.vector.ImageVector
 
@@ -25,7 +25,7 @@ enum class TemplateCategory(
     ),
     COMMUNICATION(
         displayName = "Communication",
-        icon = Icons.Default.Message
+        icon = Icons.AutoMirrored.Filled.Message
     ),
     SOCIAL_WEB(
         displayName = "Social & Web",

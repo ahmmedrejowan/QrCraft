@@ -10,8 +10,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -53,7 +53,7 @@ fun HistoryScreen(
             )
 
             // Tabs (Reordered: All, Generated, Scanned)
-            TabRow(
+            PrimaryTabRow(
                 selectedTabIndex = when (state.selectedTab) {
                     HistoryTab.ALL -> 0
                     HistoryTab.GENERATED -> 1

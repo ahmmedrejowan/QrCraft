@@ -11,10 +11,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -232,7 +232,7 @@ private fun ViewModeToggle(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = Icons.Default.ViewList,
+                imageVector = Icons.AutoMirrored.Filled.ViewList,
                 contentDescription = "List view",
                 modifier = Modifier.size(16.dp),
                 tint = Color.White
