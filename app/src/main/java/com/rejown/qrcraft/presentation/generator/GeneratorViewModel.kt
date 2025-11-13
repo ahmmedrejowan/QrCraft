@@ -188,7 +188,6 @@ class GeneratorViewModel(
     }
 
     private fun saveGeneratedCode() {
-        // TODO: Update to use new template-based system
         // This old generator is being replaced by the template-based creation flow
         Timber.w("Old generator save functionality disabled - use template-based creation")
     }

@@ -113,14 +113,6 @@ fun CreationScreen(
                         )
                     }
                 },
-                actions = {
-                    IconButton(onClick = { /* TODO: Show menu */ }) {
-                        Icon(
-                            imageVector = Icons.Default.MoreVert,
-                            contentDescription = "More options"
-                        )
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )

@@ -162,7 +162,6 @@ private fun InputField(
         }
 
         FieldType.DROPDOWN -> {
-            // TODO: Implement dropdown with options
             OutlinedTextField(
                 value = value,
                 onValueChange = onValueChange,
@@ -176,7 +175,6 @@ private fun InputField(
         }
 
         FieldType.CHECKBOX -> {
-            // TODO: Implement checkbox
             Row(
                 modifier = modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)

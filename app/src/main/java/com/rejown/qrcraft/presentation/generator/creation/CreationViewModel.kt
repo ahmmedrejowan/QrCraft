@@ -197,13 +197,59 @@ class CreationViewModel(
         val template = currentState.template ?: return
         val format = currentState.selectedFormat ?: return
 
-        // Validate required fields
+        // Validate fields with comprehensive validation
         val errors = mutableMapOf<String, String>()
         template.fields.forEach { field ->
-            if (field.required) {
-                val value = currentState.fieldValues[field.key]
-                if (value.isNullOrBlank()) {
-                    errors[field.key] = "This field is required"
+            val value = currentState.fieldValues[field.key] ?: ""
+
+            // Check required fields
+            if (field.required && value.isBlank()) {
+                errors[field.key] = "This field is required"
+                return@forEach
+            }
+
+            // Apply validation rules if value is not empty
+            if (value.isNotBlank()) {
+                field.validation?.let { rule ->
+                    val error = com.rejown.qrcraft.utils.InputValidator.validate(value, rule)
+                    if (error != null) {
+                        errors[field.key] = error
+                        return@forEach
+                    }
+                }
+
+                // Apply additional validations based on field key patterns
+                val validationError = when {
+                    field.key.contains("email", ignoreCase = true) -> {
+                        com.rejown.qrcraft.utils.InputValidator.validateEmail(value)
+                    }
+                    field.key.contains("phone", ignoreCase = true) -> {
+                        com.rejown.qrcraft.utils.InputValidator.validatePhone(value)
+                    }
+                    field.key.contains("url", ignoreCase = true) || field.key.contains("website", ignoreCase = true) -> {
+                        com.rejown.qrcraft.utils.InputValidator.validateUrl(value)
+                    }
+                    field.key == "ssid" -> {
+                        com.rejown.qrcraft.utils.InputValidator.validateWifiSSID(value)
+                    }
+                    field.key == "password" && template.id.contains("wifi", ignoreCase = true) -> {
+                        val security = currentState.fieldValues["encryption"] ?: "WPA"
+                        com.rejown.qrcraft.utils.InputValidator.validateWifiPassword(value, security)
+                    }
+                    field.key.contains("latitude", ignoreCase = true) -> {
+                        val lon = currentState.fieldValues["longitude"] ?: ""
+                        if (lon.isNotBlank()) {
+                            com.rejown.qrcraft.utils.InputValidator.validateCoordinates(value, lon)
+                        } else null
+                    }
+                    field.key.contains("date", ignoreCase = true) && value.contains("-") -> {
+                        com.rejown.qrcraft.utils.InputValidator.validateDate(value)
+                    }
+                    else -> null
+                }
+
+                if (validationError != null) {
+                    errors[field.key] = validationError
                 }
             }
         }
