@@ -1,6 +1,5 @@
 package com.rejown.qrcraft.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -12,7 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.rejown.qrcraft.data.local.preferences.ThemePreferences
 import org.koin.compose.koinInject
 
@@ -94,7 +92,6 @@ private val darkScheme = darkColorScheme(
 )
 
 
-@Suppress("DEPRECATION")
 @Composable
 fun QRCraftTheme(
     themePrefHelper: ThemePreferences = koinInject(),
@@ -119,15 +116,6 @@ fun QRCraftTheme(
         darkTheme -> darkScheme
         else -> lightScheme
     }
-
-    val systemUiController = rememberSystemUiController()
-    val useDarkIcons = !darkTheme
-
-    systemUiController.setStatusBarColor(
-        color = colorScheme.surface,
-        darkIcons = useDarkIcons
-    )
-
     MaterialTheme(
         colorScheme = colorScheme, typography = AppTypography, content = content
     )

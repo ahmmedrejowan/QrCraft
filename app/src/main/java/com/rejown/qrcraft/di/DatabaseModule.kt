@@ -14,7 +14,7 @@ val databaseModule = module {
             QRCraftDatabase::class.java,
             "qrcraft_database"
         )
-            .fallbackToDestructiveMigration()
+            .fallbackToDestructiveMigration(false)
             .build()
         timber.log.Timber.tag("QRCraft DatabaseModule").e("init - Room database created successfully")
         db

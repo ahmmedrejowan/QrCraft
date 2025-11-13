@@ -1,29 +1,29 @@
 [versions]
-agp = "8.13.0"
+agp = "8.9.3"
 coreSplashscreen = "1.2.0"
-kotlin = "2.0.21"
-ksp = "2.0.21-1.0.28"
+kotlin = "2.2.21"
+ksp = "2.2.21-2.0.4"
 coreKtx = "1.17.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
-lifecycleRuntimeKtx = "2.8.7"
+lifecycleRuntimeKtx = "2.9.4"
 activityCompose = "1.11.0"
-composeBom = "2024.12.01"
-camerax = "1.4.1"
+composeBom = "2025.11.00"
+camerax = "1.5.1"
 mlkit = "17.3.0"
 zxing = "3.5.3"
 zxingEmbedded = "4.3.0"
-koin = "4.0.1"
-room = "2.6.1"
-accompanist = "0.36.0"
-retrofit = "2.11.0"
-okhttp = "4.12.0"
+koin = "4.1.1"
+room = "2.8.3"
+accompanist = "0.37.3"
+retrofit = "3.0.0"
+okhttp = "5.3.0"
 coil = "2.7.0"
 timber = "5.0.1"
-datastore = "1.1.1"
-navigation = "2.8.5"
-serialization = "1.7.3"
+datastore = "1.1.7"
+navigation = "2.9.6"
+serialization = "1.9.0"
 
 [libraries]
 # Core Android
@@ -82,7 +82,6 @@ coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coi
 
 # Accompanist
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
-accompanist-systemuicontroller = { group = "com.google.accompanist", name = "accompanist-systemuicontroller", version.ref = "accompanist" }
 
 # Utilities
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
