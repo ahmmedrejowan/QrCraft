@@ -39,7 +39,7 @@
 You can download the latest APK from here
 
 <a href="https://github.com/ahmmedrejowan/QrCraft/releases/download/1.0.0/QR_Craft_1.0.0.apk">
-<img src="https://raw.githubusercontent.com/ahmmedrejowan/QrCraft/main/files/get.jpg" width="224px" align="center"/>
+<img src="https://raw.githubusercontent.com/ahmmedrejowan/QrCraft/main/files/get.png" width="224px" align="center"/>
 </a>
 
 Check out the [releases](https://github.com/ahmmedrejowan/QRCraft/releases) section for more
