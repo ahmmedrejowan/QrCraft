@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.zxing.BarcodeFormat
-import com.rejown.qrcraft.data.local.database.entities.GeneratedCodeEntity
 import com.rejown.qrcraft.domain.repository.GeneratorRepository
 import com.rejown.qrcraft.presentation.generator.state.GeneratorEvent
 import com.rejown.qrcraft.presentation.generator.state.GeneratorState
@@ -16,8 +15,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream

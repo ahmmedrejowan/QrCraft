@@ -81,7 +81,7 @@ class HistoryViewModel(
                                     HistoryItemData.Scanned(
                                         id = scan.id,
                                         timestamp = scan.timestamp,
-                                        entity = scan
+                                        data = scan
                                     )
                                 )
                             }
@@ -90,7 +90,7 @@ class HistoryViewModel(
                                     HistoryItemData.Generated(
                                         id = gen.id,
                                         timestamp = gen.createdAt,
-                                        entity = gen
+                                        data = gen
                                     )
                                 )
                             }

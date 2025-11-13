@@ -61,6 +61,14 @@ enum class BarcodeFormat(
             }
         }
 
+        fun fromString(formatString: String): BarcodeFormat {
+            return try {
+                valueOf(formatString)
+            } catch (e: IllegalArgumentException) {
+                UNKNOWN
+            }
+        }
+
         fun getByType(type: BarcodeType): List<BarcodeFormat> {
             return values().filter { it.type == type && it != UNKNOWN }
         }

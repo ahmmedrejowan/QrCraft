@@ -32,16 +32,16 @@ class ScanHistoryDetailViewModel(
             _state.value = ScanHistoryDetailState(isLoading = true, scanId = scanId)
 
             try {
-                val entity = scanRepository.getHistoryById(scanId)
-                if (entity != null) {
-                    // Convert entity back to ScanResult
+                val history = scanRepository.getHistoryById(scanId)
+                if (history != null) {
+                    // Convert history to ScanResult
                     val scanResult = ScanResult(
-                        rawValue = entity.content,
-                        displayValue = entity.content,
-                        format = BarcodeFormat.valueOf(entity.format),
-                        contentType = ContentType.valueOf(entity.contentType),
-                        timestamp = entity.timestamp,
-                        metadata = null // Metadata stored as JSON, would need parsing
+                        rawValue = history.content,
+                        displayValue = history.content,
+                        format = history.format,
+                        contentType = history.contentType,
+                        timestamp = history.timestamp,
+                        metadata = history.metadata
                     )
 
                     _state.value = ScanHistoryDetailState(

@@ -2,7 +2,7 @@ package com.rejown.qrcraft.presentation.scanner
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.rejown.qrcraft.data.local.database.entities.ScanHistoryEntity
+import com.rejown.qrcraft.domain.models.ScanHistory
 import com.rejown.qrcraft.domain.repository.ScanRepository
 import com.rejown.qrcraft.presentation.scanner.state.ScannerEvent
 import com.rejown.qrcraft.presentation.scanner.state.ScannerScreenState
@@ -11,8 +11,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import timber.log.Timber
 
 class ScannerViewModel(
@@ -99,37 +97,37 @@ class ScannerViewModel(
             Timber.tag("QC ScannerViewMode").d("saveToHistory - Starting save operation for: ${result.displayValue}")
 
             // Check for duplicate based on format and content
-            val existingEntity = scanRepository.findDuplicate(
+            val existingHistory = scanRepository.findDuplicate(
                 format = result.format.name,
                 content = result.displayValue
             )
 
-            if (existingEntity != null) {
+            if (existingHistory != null) {
                 // Duplicate found - update timestamp and other fields
-                Timber.tag("QC ScannerViewMode").d("saveToHistory - Duplicate found with ID: ${existingEntity.id}, updating timestamp")
-                val updatedEntity = existingEntity.copy(
+                Timber.tag("QC ScannerViewMode").d("saveToHistory - Duplicate found with ID: ${existingHistory.id}, updating timestamp")
+                val updatedHistory = existingHistory.copy(
                     timestamp = result.timestamp,
                     rawValue = result.rawValue,
-                    metadata = result.metadata?.let { Json.encodeToString(it) }
+                    metadata = result.metadata
                 )
-                scanRepository.updateScan(updatedEntity)
+                scanRepository.updateScan(updatedHistory)
                 Timber.tag("QC ScannerViewMode").d("saveToHistory - Duplicate updated successfully")
-                existingEntity.id
+                existingHistory.id
             } else {
                 // No duplicate - insert new entry
                 Timber.tag("QC ScannerViewMode").d("saveToHistory - No duplicate found, creating new entry")
-                val entity = ScanHistoryEntity(
+                val history = ScanHistory(
                     content = result.displayValue,
                     rawValue = result.rawValue,
-                    format = result.format.name,
-                    contentType = result.contentType.name,
+                    format = result.format,
+                    contentType = result.contentType,
                     timestamp = result.timestamp,
                     isFavorite = false,
-                    metadata = result.metadata?.let { Json.encodeToString(it) },
+                    metadata = result.metadata,
                     imagePath = null
                 )
 
-                val insertedId = scanRepository.insertScan(entity)
+                val insertedId = scanRepository.insertScan(history)
                 Timber.tag("QC ScannerViewMode").d("saveToHistory - Scan saved to history with ID: $insertedId")
                 insertedId
             }

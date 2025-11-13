@@ -1,12 +1,12 @@
 package com.rejown.qrcraft.presentation.history.state
 
-import com.rejown.qrcraft.data.local.database.entities.GeneratedCodeEntity
-import com.rejown.qrcraft.data.local.database.entities.ScanHistoryEntity
+import com.rejown.qrcraft.domain.models.GeneratedCodeData
+import com.rejown.qrcraft.domain.models.ScanHistory
 
 data class HistoryState(
     val selectedTab: HistoryTab = HistoryTab.ALL,
-    val scannedHistory: List<ScanHistoryEntity> = emptyList(),
-    val generatedHistory: List<GeneratedCodeEntity> = emptyList(),
+    val scannedHistory: List<ScanHistory> = emptyList(),
+    val generatedHistory: List<GeneratedCodeData> = emptyList(),
     val combinedHistory: List<HistoryItemData> = emptyList(),
     val searchQuery: String = "",
     val selectedFilter: String? = null,
@@ -33,13 +33,13 @@ sealed class HistoryItemData(
     data class Scanned(
         override val id: Long,
         override val timestamp: Long,
-        val entity: ScanHistoryEntity
+        val data: ScanHistory
     ) : HistoryItemData(id, timestamp, HistoryItemType.SCANNED)
 
     data class Generated(
         override val id: Long,
         override val timestamp: Long,
-        val entity: GeneratedCodeEntity
+        val data: GeneratedCodeData
     ) : HistoryItemData(id, timestamp, HistoryItemType.GENERATED)
 }
 

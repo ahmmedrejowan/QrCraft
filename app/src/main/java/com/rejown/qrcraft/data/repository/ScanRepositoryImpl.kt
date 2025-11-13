@@ -1,39 +1,43 @@
 package com.rejown.qrcraft.data.repository
 
 import com.rejown.qrcraft.data.local.database.dao.ScanHistoryDao
-import com.rejown.qrcraft.data.local.database.entities.ScanHistoryEntity
+import com.rejown.qrcraft.data.mappers.toDomain
+import com.rejown.qrcraft.data.mappers.toDomainList
+import com.rejown.qrcraft.data.mappers.toEntity
+import com.rejown.qrcraft.domain.models.ScanHistory
 import com.rejown.qrcraft.domain.repository.ScanRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import timber.log.Timber
 
 class ScanRepositoryImpl(
     private val scanHistoryDao: ScanHistoryDao
 ) : ScanRepository {
 
-    override fun getAllHistory(): Flow<List<ScanHistoryEntity>> {
-        return scanHistoryDao.getAllHistory()
+    override fun getAllHistory(): Flow<List<ScanHistory>> {
+        return scanHistoryDao.getAllHistory().map { it.toDomainList() }
     }
 
-    override fun getFavorites(): Flow<List<ScanHistoryEntity>> {
-        return scanHistoryDao.getFavorites()
+    override fun getFavorites(): Flow<List<ScanHistory>> {
+        return scanHistoryDao.getFavorites().map { it.toDomainList() }
     }
 
-    override fun searchHistory(query: String): Flow<List<ScanHistoryEntity>> {
-        return scanHistoryDao.searchHistory(query)
+    override fun searchHistory(query: String): Flow<List<ScanHistory>> {
+        return scanHistoryDao.searchHistory(query).map { it.toDomainList() }
     }
 
-    override fun getHistoryByType(type: String): Flow<List<ScanHistoryEntity>> {
-        return scanHistoryDao.getHistoryByType(type)
+    override fun getHistoryByType(type: String): Flow<List<ScanHistory>> {
+        return scanHistoryDao.getHistoryByType(type).map { it.toDomainList() }
     }
 
-    override suspend fun getHistoryById(id: Long): ScanHistoryEntity? {
-        return scanHistoryDao.getHistoryById(id)
+    override suspend fun getHistoryById(id: Long): ScanHistory? {
+        return scanHistoryDao.getHistoryById(id)?.toDomain()
     }
 
-    override suspend fun insertScan(history: ScanHistoryEntity): Long {
+    override suspend fun insertScan(history: ScanHistory): Long {
         Timber.tag("QC ScanRepositoryImpl").d("insertScan - Called with content: ${history.content}")
         return try {
-            val id = scanHistoryDao.insert(history)
+            val id = scanHistoryDao.insert(history.toEntity())
             Timber.tag("QC ScanRepositoryImpl").d("insertScan - Insert successful, ID: $id")
             id
         } catch (e: Exception) {
@@ -42,12 +46,12 @@ class ScanRepositoryImpl(
         }
     }
 
-    override suspend fun updateScan(history: ScanHistoryEntity) {
-        scanHistoryDao.update(history)
+    override suspend fun updateScan(history: ScanHistory) {
+        scanHistoryDao.update(history.toEntity())
     }
 
-    override suspend fun deleteScan(history: ScanHistoryEntity) {
-        scanHistoryDao.delete(history)
+    override suspend fun deleteScan(history: ScanHistory) {
+        scanHistoryDao.delete(history.toEntity())
     }
 
     override suspend fun deleteByIds(ids: List<Long>) {
@@ -66,7 +70,7 @@ class ScanRepositoryImpl(
         return scanHistoryDao.getCount()
     }
 
-    override suspend fun findDuplicate(format: String, content: String): ScanHistoryEntity? {
-        return scanHistoryDao.findDuplicate(format, content)
+    override suspend fun findDuplicate(format: String, content: String): ScanHistory? {
+        return scanHistoryDao.findDuplicate(format, content)?.toDomain()
     }
 }

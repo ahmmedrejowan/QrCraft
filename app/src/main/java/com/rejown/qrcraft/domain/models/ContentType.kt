@@ -46,5 +46,13 @@ enum class ContentType(val displayName: String) {
                 else -> TEXT
             }
         }
+
+        fun fromString(typeString: String): ContentType {
+            return try {
+                valueOf(typeString)
+            } catch (e: IllegalArgumentException) {
+                TEXT
+            }
+        }
     }
 }

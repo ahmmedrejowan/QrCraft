@@ -1,10 +1,10 @@
 package com.rejown.qrcraft.presentation.generator.details
 
 import android.graphics.Bitmap
-import com.rejown.qrcraft.data.local.database.entities.GeneratedCodeEntity
+import com.rejown.qrcraft.domain.models.GeneratedCodeData
 
 data class CodeDetailState(
-    val code: GeneratedCodeEntity? = null,
+    val code: GeneratedCodeData? = null,
     val bitmap: Bitmap? = null,
     val isLoading: Boolean = true,
     val error: String? = null,

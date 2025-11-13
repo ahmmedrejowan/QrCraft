@@ -278,7 +278,7 @@ fun CodeDetailScreen(
 }
 
 private fun getOpenAction(
-    code: com.rejown.qrcraft.data.local.database.entities.GeneratedCodeEntity,
+    code: com.rejown.qrcraft.domain.models.GeneratedCodeData,
     context: android.content.Context,
     scope: kotlinx.coroutines.CoroutineScope,
     snackbarHostState: SnackbarHostState
@@ -369,7 +369,7 @@ private fun CodeDetailContent(
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         // QR Code Image - Adaptive size based on barcode type
-        val is2DBarcode = is2DBarcodeFormat(code.barcodeFormat)
+        val is2DBarcode = is2DBarcodeFormat(code.barcodeFormat.name)
         val previewModifier = if (is2DBarcode) {
             // 2D codes (QR, Data Matrix, Aztec, etc.) - smaller square
             Modifier
@@ -534,7 +534,7 @@ private fun CodeDetailContent(
         TemplateInfoSection(
             templateName = code.templateName,
             barcodeType = code.barcodeType,
-            barcodeFormat = code.barcodeFormat
+            barcodeFormat = code.barcodeFormat.name
         )
 
         // Customization - Redesigned
@@ -543,7 +543,7 @@ private fun CodeDetailContent(
             margin = code.margin,
             foregroundColor = code.foregroundColor,
             backgroundColor = code.backgroundColor,
-            errorCorrection = code.errorCorrection
+            errorCorrection = code.errorCorrection?.name
         )
 
         // Metadata - Redesigned

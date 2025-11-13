@@ -6,10 +6,10 @@ import android.net.Uri
 import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.rejown.qrcraft.data.local.database.entities.GeneratedCodeEntity
 import com.rejown.qrcraft.data.repository.TemplateRepository
 import com.rejown.qrcraft.domain.models.BarcodeFormat
 import com.rejown.qrcraft.domain.models.CodeCustomization
+import com.rejown.qrcraft.domain.models.GeneratedCodeData
 import com.rejown.qrcraft.domain.repository.GeneratorRepository
 import com.rejown.qrcraft.utils.generator.CodeGenerator
 import kotlinx.coroutines.Dispatchers
@@ -71,28 +71,15 @@ class CreationViewModel(
                     // Load the template
                     val template = TemplateRepository.getTemplateById(code.templateId)
                     if (template != null) {
-                        // Parse the contentFields JSON to get field values
-                        val fieldValues = try {
-                            Json.decodeFromString<Map<String, String>>(code.contentFields)
-                        } catch (e: Exception) {
-                            Timber.e(e, "Failed to parse contentFields")
-                            emptyMap()
-                        }
+                        // Field values are already a Map<String, String> in domain model
+                        val fieldValues = code.contentFields
 
-                        // Parse the barcode format
-                        val barcodeFormat = try {
-                            BarcodeFormat.valueOf(code.barcodeFormat)
-                        } catch (e: Exception) {
-                            template.defaultFormat
-                        }
+                        // Parse the barcode format (already a BarcodeFormat enum in domain model)
+                        val barcodeFormat = code.barcodeFormat
 
-                        // Parse error correction level
-                        val errorCorrectionLevel = try {
-                            code.errorCorrection?.let { com.rejown.qrcraft.domain.models.ErrorCorrectionLevel.valueOf(it) }
-                                ?: com.rejown.qrcraft.domain.models.ErrorCorrectionLevel.MEDIUM
-                        } catch (e: Exception) {
-                            com.rejown.qrcraft.domain.models.ErrorCorrectionLevel.MEDIUM
-                        }
+                        // Error correction is already an ErrorCorrectionLevel enum in domain model
+                        val errorCorrectionLevel = code.errorCorrection
+                            ?: com.rejown.qrcraft.domain.models.ErrorCorrectionLevel.MEDIUM
 
                         // Create customization from stored values
                         val customization = CodeCustomization(
@@ -419,25 +406,22 @@ class CreationViewModel(
                 // Format content
                 val formattedContent = template.formatContentProvider(currentState.fieldValues)
 
-                // Convert field values to JSON
-                val contentFieldsJson = Json.encodeToString(currentState.fieldValues)
-
-                // Create or update entity
-                val entity = if (isEditMode && existingCode != null) {
-                    // Update existing entity
+                // Create or update domain model
+                val codeData = if (isEditMode && existingCode != null) {
+                    // Update existing code
                     existingCode.copy(
                         templateId = template.id,
                         templateName = template.name,
-                        barcodeFormat = format.name,
+                        barcodeFormat = format,
                         barcodeType = format.type.name,
                         title = currentState.title.takeIf { it.isNotBlank() },
                         note = currentState.note.takeIf { it.isNotBlank() },
-                        contentFields = contentFieldsJson,
+                        contentFields = currentState.fieldValues,
                         formattedContent = formattedContent,
                         foregroundColor = currentState.customization.foregroundColor,
                         backgroundColor = currentState.customization.backgroundColor,
                         size = currentState.customization.size,
-                        errorCorrection = currentState.customization.errorCorrectionLevel.name,
+                        errorCorrection = currentState.customization.errorCorrectionLevel,
                         margin = currentState.customization.margin,
                         imagePath = fileName,
                         imageWidth = bitmap.width,
@@ -446,20 +430,20 @@ class CreationViewModel(
                         // Preserve: createdAt, isFavorite, scanCount
                     )
                 } else {
-                    // Create new entity
-                    GeneratedCodeEntity(
+                    // Create new code
+                    GeneratedCodeData(
                         templateId = template.id,
                         templateName = template.name,
-                        barcodeFormat = format.name,
+                        barcodeFormat = format,
                         barcodeType = format.type.name,
                         title = currentState.title.takeIf { it.isNotBlank() },
                         note = currentState.note.takeIf { it.isNotBlank() },
-                        contentFields = contentFieldsJson,
+                        contentFields = currentState.fieldValues,
                         formattedContent = formattedContent,
                         foregroundColor = currentState.customization.foregroundColor,
                         backgroundColor = currentState.customization.backgroundColor,
                         size = currentState.customization.size,
-                        errorCorrection = currentState.customization.errorCorrectionLevel.name,
+                        errorCorrection = currentState.customization.errorCorrectionLevel,
                         margin = currentState.customization.margin,
                         imagePath = fileName,
                         imageWidth = bitmap.width,
@@ -473,10 +457,10 @@ class CreationViewModel(
 
                 // Insert or update
                 val codeId = if (isEditMode && existingCode != null) {
-                    generatorRepository.updateGenerated(entity)
-                    entity.id // Return existing ID
+                    generatorRepository.updateGenerated(codeData)
+                    codeData.id // Return existing ID
                 } else {
-                    generatorRepository.insertGenerated(entity)
+                    generatorRepository.insertGenerated(codeData)
                 }
 
                 _state.update {

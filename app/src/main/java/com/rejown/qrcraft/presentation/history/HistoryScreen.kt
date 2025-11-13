@@ -120,11 +120,11 @@ fun HistoryScreen(
                                     is HistoryItemData.Scanned -> {
                                         HistoryItem(
                                             title = null,
-                                            content = item.entity.content,
-                                            contentType = item.entity.contentType,
-                                            format = item.entity.format,
-                                            timestamp = item.entity.timestamp,
-                                            isFavorite = item.entity.isFavorite,
+                                            content = item.data.content,
+                                            contentType = item.data.contentType.name,
+                                            format = item.data.format.name,
+                                            timestamp = item.data.timestamp,
+                                            isFavorite = item.data.isFavorite,
                                             tag = "Scanned",
                                             onClicked = {
                                                 navController.navigate(
@@ -135,7 +135,7 @@ fun HistoryScreen(
                                                 viewModel.onEvent(
                                                     HistoryEvent.OnToggleFavorite(
                                                         item.id,
-                                                        !item.entity.isFavorite
+                                                        !item.data.isFavorite
                                                     )
                                                 )
                                             },
@@ -144,12 +144,12 @@ fun HistoryScreen(
                                     }
                                     is HistoryItemData.Generated -> {
                                         HistoryItem(
-                                            title = item.entity.title,
-                                            content = item.entity.formattedContent,
-                                            contentType = item.entity.templateName,
-                                            format = item.entity.barcodeFormat,
-                                            timestamp = item.entity.createdAt,
-                                            isFavorite = item.entity.isFavorite,
+                                            title = item.data.title,
+                                            content = item.data.formattedContent,
+                                            contentType = item.data.templateName,
+                                            format = item.data.barcodeFormat.name,
+                                            timestamp = item.data.createdAt,
+                                            isFavorite = item.data.isFavorite,
                                             tag = "Generated",
                                             onClicked = {
                                                 navController.navigate(
@@ -160,7 +160,7 @@ fun HistoryScreen(
                                                 viewModel.onEvent(
                                                     HistoryEvent.OnToggleFavorite(
                                                         item.id,
-                                                        !item.entity.isFavorite
+                                                        !item.data.isFavorite
                                                     )
                                                 )
                                             },
@@ -188,8 +188,8 @@ fun HistoryScreen(
                                 HistoryItem(
                                     title = null,
                                     content = item.content,
-                                    contentType = item.contentType,
-                                    format = item.format,
+                                    contentType = item.contentType.name,
+                                    format = item.format.name,
                                     timestamp = item.timestamp,
                                     isFavorite = item.isFavorite,
                                     onClicked = {
@@ -228,7 +228,7 @@ fun HistoryScreen(
                                     title = item.title,
                                     content = item.formattedContent,
                                     contentType = item.templateName,
-                                    format = item.barcodeFormat,
+                                    format = item.barcodeFormat.name,
                                     timestamp = item.createdAt,
                                     isFavorite = item.isFavorite,
                                     onClicked = {
