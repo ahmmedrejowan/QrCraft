@@ -109,14 +109,17 @@ dependencies {
     // Google Fonts
     implementation(libs.androidx.compose.ui.text.google.fonts)
 
-    // Testing
+    // Testing - Unit Tests Only
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
+    testImplementation(libs.koin.test)
+    testImplementation(libs.koin.test.junit4)
+    testImplementation(libs.androidx.core.testing)
+
+    // Debug Tools (not test-related)
     debugImplementation(libs.androidx.compose.ui.tooling)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     // splash screen
     implementation(libs.androidx.core.splashscreen)

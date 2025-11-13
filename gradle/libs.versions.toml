@@ -5,8 +5,6 @@ kotlin = "2.2.21"
 ksp = "2.2.21-2.0.4"
 coreKtx = "1.17.0"
 junit = "4.13.2"
-junitVersion = "1.3.0"
-espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.9.4"
 activityCompose = "1.11.0"
 composeBom = "2025.11.00"
@@ -22,6 +20,10 @@ timber = "5.0.1"
 datastore = "1.1.7"
 navigation = "2.9.6"
 serialization = "1.9.0"
+mockk = "1.13.13"
+coroutinesTest = "1.9.0"
+turbine = "1.2.0"
+koinTest = "4.1.1"
 
 [libraries]
 # Core Android
@@ -85,10 +87,14 @@ timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "tim
 # Google Fonts
 androidx-compose-ui-text-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts" }
 
-# Testing
+# Testing - Unit Tests Only
 junit = { group = "junit", name = "junit", version.ref = "junit" }
-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
+turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
+koin-test = { group = "io.insert-koin", name = "koin-test", version.ref = "koinTest" }
+koin-test-junit4 = { group = "io.insert-koin", name = "koin-test-junit4", version.ref = "koinTest" }
+androidx-core-testing = { group = "androidx.arch.core", name = "core-testing", version = "2.2.0" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
