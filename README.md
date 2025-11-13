@@ -1,19 +1,19 @@
 # QRCraft
 
 <div align="center">
-  <img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png" alt="QRCraft Logo" width="120" height="120">
+  <img src="https://raw.githubusercontent.com/ahmmedrejowan/QrCraft/main/files/logo.png" alt="QRCraft Logo" width="120" height="120">
 
-  <h3>Professional QR Code & Barcode Scanner + Generator</h3>
+<h3>Professional QR Code & Barcode Scanner + Generator</h3>
 
   <p>
     A modern, feature-rich Android app for scanning and generating QR codes and barcodes with 26 professional templates.
   </p>
 
-  [![Android](https://img.shields.io/badge/Platform-Android-green.svg?style=flat)](https://www.android.com/)
-  [![API](https://img.shields.io/badge/API-24%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=24)
-  [![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](LICENSE)
-  [![Kotlin](https://img.shields.io/badge/Kotlin-100%25-purple.svg)](https://kotlinlang.org/)
-  [![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-1.5-blue.svg)](https://developer.android.com/jetpack/compose)
+[![Android](https://img.shields.io/badge/Platform-Android-green.svg?style=flat)](https://www.android.com/)
+[![API](https://img.shields.io/badge/API-24%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=24)
+[![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](LICENSE)
+[![Kotlin](https://img.shields.io/badge/Kotlin-100%25-purple.svg)](https://kotlinlang.org/)
+[![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-1.5-blue.svg)](https://developer.android.com/jetpack/compose)
 </div>
 
 ---
@@ -32,9 +32,27 @@
 
 ---
 
+## Download
+
+![GitHub Release](https://img.shields.io/github/v/release/ahmmedrejowan/QRCraft)
+
+You can download the latest APK from here
+
+<a href="https://github.com/ahmmedrejowan/QrCraft/releases/download/1.0.0/QR_Craft_1.0.0.apk">
+<img src="https://raw.githubusercontent.com/ahmmedrejowan/QrCraft/main/files/get.jpg" width="224px" align="center"/>
+</a>
+
+Check out the [releases](https://github.com/ahmmedrejowan/QRCraft/releases) section for more
+details.
+
+---
+
 ## Screenshots
 
-*Coming soon - Screenshots will be added in the next update*
+| Shots                                                                                         | Shots                                                                                         | Shots                                                                                         |
+|-----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| ![Screenshot 1](https://raw.githubusercontent.com/ahmmedrejowan/QrCraft/main/files/shot1.jpg) | ![Screenshot 2](https://raw.githubusercontent.com/ahmmedrejowan/QrCraft/main/files/shot2.jpg) | ![Screenshot 3](https://raw.githubusercontent.com/ahmmedrejowan/QrCraft/main/files/shot3.jpg) |
+| ![Screenshot 4](https://raw.githubusercontent.com/ahmmedrejowan/QrCraft/main/files/shot4.jpg) | ![Screenshot 3](https://raw.githubusercontent.com/ahmmedrejowan/QrCraft/main/files/shot5.jpg) | ![Screenshot 4](https://raw.githubusercontent.com/ahmmedrejowan/QrCraft/main/files/shot6.jpg) |
 
 ---
 
@@ -96,27 +114,18 @@ app/
 - **Java**: 17
 
 ### Permissions
+
 - `CAMERA` - Required for QR code and barcode scanning
 
 **Note:** This app is 100% offline and does not require internet permission.
 
 ---
 
-## Download
-![GitHub Release](https://img.shields.io/github/v/release/ahmmedrejowan/QRCraft)
-
-You can download the latest APK from here
-
-<a href="https://github.com/ahmmedrejowan/QRCraft/releases/download/1.0.0/QRCraft.1.0.0.apk">
-<img src="https://raw.githubusercontent.com/ahmmedrejowan/MultiAppUninstaller/master/files/get.png" width="224px" align="center"/>
-</a>
-
-Check out the [releases](https://github.com/ahmmedrejowan/QRCraft/releases) section for more details.
-
----
 
 ## Build & Run
+
 To build and run the project, follow these steps:
+
 1. Clone the repository:
    ```bash
    git clone https://github.com/ahmmedrejowan/QRCraft.git
@@ -144,9 +153,11 @@ To build and run the project, follow these steps:
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open
+an issue first to discuss what you would like to change.
 
 ### Development Guidelines
+
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
 3. Follow the existing code style and architecture
@@ -156,6 +167,7 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 7. Open a Pull Request
 
 ### Code Style
+
 - Follow Kotlin coding conventions
 - Use meaningful variable and function names
 - Add KDoc comments for public APIs
@@ -175,6 +187,7 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 
 You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
 ```
+
 ---
 
 ## Author
@@ -189,7 +202,8 @@ You should have received a copy of the GNU General Public License along with thi
 ## Acknowledgments
 
 - [ZXing](https://github.com/zxing/zxing) - Barcode generation and scanning
-- [Google ML Kit](https://developers.google.com/ml-kit/vision/barcode-scanning) - Fast barcode scanning
+- [Google ML Kit](https://developers.google.com/ml-kit/vision/barcode-scanning) - Fast barcode
+  scanning
 - [CameraX](https://developer.android.com/jetpack/androidx/releases/camera) - Modern camera API
 - [Jetpack Compose](https://developer.android.com/jetpack/compose) - Modern Android UI toolkit
 - [Material Design 3](https://m3.material.io/) - Design system
@@ -199,13 +213,14 @@ You should have received a copy of the GNU General Public License along with thi
 ## Changelog
 
 ### v1.0.0 (2025-01-13) - Initial Release
--  Real-time QR code and barcode scanning
--  26 professional code generation templates
--  Multiple barcode format support
--  Scan and generation history
--  Favorites management
--  Material 3 design with dark mode
--  100% offline functionality
+
+- Real-time QR code and barcode scanning
+- 26 professional code generation templates
+- Multiple barcode format support
+- Scan and generation history
+- Favorites management
+- Material 3 design with dark mode
+- 100% offline functionality
 
 ---
 
